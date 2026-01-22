@@ -1,9 +1,9 @@
 <?php
 
-namespace framework\event_dispatcher;
+namespace jujelitsa\framework\event_dispatcher;
 
 use Exception;
-use framework\container\ContainerInterface;
+use jujelitsa\framework\container\ContainerInterface;
 
 class EventDispatcher implements EventDispatcherInterface
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\event_dispatcher;
+namespace jujelitsa\framework\event_dispatcher;
 
 class LogContextEvent
 {

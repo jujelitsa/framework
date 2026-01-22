@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\contracts;
+namespace jujelitsa\framework\contracts;
 
 use Throwable;
 

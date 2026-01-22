@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\http;
+namespace jujelitsa\framework\http;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;

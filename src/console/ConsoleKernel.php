@@ -1,15 +1,15 @@
 <?php
 
-namespace framework\console;
+namespace jujelitsa\framework\console;
 
-use framework\console\commands\ListCommand;
-use framework\console\contracts\ConsoleCommandInterface;
-use framework\console\contracts\ConsoleInputInterface;
-use framework\console\contracts\ConsoleKernelInterface;
-use framework\console\contracts\ConsoleOutputInterface;
-use framework\container\DiContainer;
-use framework\contracts\ErrorHandlerInterface;
-use framework\logger\LoggerInterface;
+use jujelitsa\framework\console\commands\ListCommand;
+use jujelitsa\framework\console\contracts\ConsoleCommandInterface;
+use jujelitsa\framework\console\contracts\ConsoleInputInterface;
+use jujelitsa\framework\console\contracts\ConsoleKernelInterface;
+use jujelitsa\framework\console\contracts\ConsoleOutputInterface;
+use jujelitsa\framework\container\DiContainer;
+use jujelitsa\framework\contracts\ErrorHandlerInterface;
+use jujelitsa\framework\logger\LoggerInterface;
 
 /**
  * Ядро обработки вызова консоли

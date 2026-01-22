@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\console\contracts;
+namespace jujelitsa\framework\console\contracts;
 
 interface ConsoleOutputInterface
 {

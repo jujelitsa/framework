@@ -1,8 +1,8 @@
 <?php
 
-namespace framework\console;
+namespace jujelitsa\framework\console;
 
-use framework\contracts\ErrorHandlerInterface;
+use jujelitsa\framework\contracts\ErrorHandlerInterface;
 use Throwable;
 
 class ErrorHandler implements ErrorHandlerInterface

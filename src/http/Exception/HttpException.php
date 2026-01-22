@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\http\Exception;
+namespace jujelitsa\framework\http\Exception;
 
 class HttpException extends \Exception
 {

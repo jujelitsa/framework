@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\console;
+namespace jujelitsa\framework\console;
 
 /**
  * Хранение описания вызванной команды

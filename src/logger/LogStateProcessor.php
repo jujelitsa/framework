@@ -1,13 +1,13 @@
 <?php
 
-namespace framework\logger;
+namespace jujelitsa\framework\logger;
 
 use Exception;
-use framework\ApplicationTypeEnum;
-use framework\event_dispatcher\EventDispatcherInterface;
-use framework\event_dispatcher\LogContextEvent;
-use framework\event_dispatcher\Message;
-use framework\storage\DebugTagStorageInterface;
+use jujelitsa\framework\ApplicationTypeEnum;
+use jujelitsa\framework\event_dispatcher\EventDispatcherInterface;
+use jujelitsa\framework\event_dispatcher\LogContextEvent;
+use jujelitsa\framework\event_dispatcher\Message;
+use jujelitsa\framework\storage\DebugTagStorageInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 class LogStateProcessor

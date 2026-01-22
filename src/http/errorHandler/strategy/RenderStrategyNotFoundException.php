@@ -1,8 +1,8 @@
 <?php
 
-namespace framework\http\errorHandler\strategy;
+namespace jujelitsa\framework\http\errorHandler\strategy;
 
-use framework\http\Exception\HttpException;
+use jujelitsa\framework\http\Exception\HttpException;
 
 class RenderStrategyNotFoundException extends HttpException
 {

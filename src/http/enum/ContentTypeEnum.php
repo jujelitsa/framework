@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\http\enum;
+namespace jujelitsa\framework\http\enum;
 
 enum ContentTypeEnum: string
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\http\router;
+namespace jujelitsa\framework\http\router;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;

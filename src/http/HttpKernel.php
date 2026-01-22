@@ -1,14 +1,14 @@
 <?php
 
-namespace framework\http;
+namespace jujelitsa\framework\http;
 
-use framework\contracts\ErrorHandlerInterface;
-use framework\event_dispatcher\EventDispatcherInterface;
-use framework\http\contracts\HttpKernelInterface;
-use framework\http\enum\ContentTypeEnum;
-use framework\http\Exception\HttpException;
-use framework\http\router\HTTPRouterInterface;
-use framework\logger\LoggerInterface;
+use jujelitsa\framework\contracts\ErrorHandlerInterface;
+use jujelitsa\framework\event_dispatcher\EventDispatcherInterface;
+use jujelitsa\framework\http\contracts\HttpKernelInterface;
+use jujelitsa\framework\http\enum\ContentTypeEnum;
+use jujelitsa\framework\http\Exception\HttpException;
+use jujelitsa\framework\http\router\HTTPRouterInterface;
+use jujelitsa\framework\logger\LoggerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

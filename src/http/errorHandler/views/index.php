@@ -6,7 +6,7 @@
  * @var bool $debugMode
  */
 
-use framework\EnvironmentModeEnum;
+use jujelitsa\framework\EnvironmentModeEnum;
 
 if ($exception->getStatusCode() >= 400 && $exception->getStatusCode() < 500) {
     $title =

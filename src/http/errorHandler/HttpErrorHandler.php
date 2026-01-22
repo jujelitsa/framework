@@ -1,14 +1,14 @@
 <?php
 
-namespace framework\http\errorHandler;
+namespace jujelitsa\framework\http\errorHandler;
 
-use framework\container\ContainerInterface;
-use framework\contracts\ErrorHandlerInterface;
-use framework\http\contracts\RenderStrategyInterface;
-use framework\http\enum\ContentTypeEnum;
-use framework\http\errorHandler\strategy\HtmlRenderStrategy;
-use framework\http\errorHandler\strategy\JsonRenderStrategy;
-use framework\http\errorHandler\strategy\RenderStrategyNotFoundException;
+use jujelitsa\framework\container\ContainerInterface;
+use jujelitsa\framework\contracts\ErrorHandlerInterface;
+use jujelitsa\framework\http\contracts\RenderStrategyInterface;
+use jujelitsa\framework\http\enum\ContentTypeEnum;
+use jujelitsa\framework\http\errorHandler\strategy\HtmlRenderStrategy;
+use jujelitsa\framework\http\errorHandler\strategy\JsonRenderStrategy;
+use jujelitsa\framework\http\errorHandler\strategy\RenderStrategyNotFoundException;
 
 class HttpErrorHandler implements ErrorHandlerInterface
 {
