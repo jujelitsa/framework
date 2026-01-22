@@ -1,11 +1,11 @@
 <?php
 
-namespace framework\console\commands;
+namespace jujelitsa\framework\console\commands;
 
-use framework\console\contracts\ConsoleCommandInterface;
-use framework\console\contracts\ConsoleInputInterface;
-use framework\console\contracts\ConsoleKernelInterface;
-use framework\console\contracts\ConsoleOutputInterface;
+use jujelitsa\framework\console\contracts\ConsoleCommandInterface;
+use jujelitsa\framework\console\contracts\ConsoleInputInterface;
+use jujelitsa\framework\console\contracts\ConsoleKernelInterface;
+use jujelitsa\framework\console\contracts\ConsoleOutputInterface;
 
 /**
  * Команда вывода информации о консольном ядре

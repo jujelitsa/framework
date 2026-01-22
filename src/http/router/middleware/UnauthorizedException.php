@@ -1,8 +1,8 @@
 <?php
 
-namespace framework\http\router\middleware;
+namespace jujelitsa\framework\http\router\middleware;
 
-use framework\http\Exception\HttpException;
+use jujelitsa\framework\http\Exception\HttpException;
 
 class UnauthorizedException extends HttpException
 {

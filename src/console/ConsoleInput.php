@@ -1,13 +1,13 @@
 <?php
 
-namespace framework\console;
+namespace jujelitsa\framework\console;
 
-use framework\console\contracts\ConsoleCommandInterface;
-use framework\console\contracts\ConsoleInputInterface;
-use framework\console\contracts\ConsoleInputPluginInterface;
-use framework\container\DiContainer;
-use framework\event_dispatcher\EventDispatcherInterface;
-use framework\event_dispatcher\Message;
+use jujelitsa\framework\console\contracts\ConsoleCommandInterface;
+use jujelitsa\framework\console\contracts\ConsoleInputInterface;
+use jujelitsa\framework\console\contracts\ConsoleInputPluginInterface;
+use jujelitsa\framework\container\DiContainer;
+use jujelitsa\framework\event_dispatcher\EventDispatcherInterface;
+use jujelitsa\framework\event_dispatcher\Message;
 
 class ConsoleInput implements ConsoleInputInterface
 {

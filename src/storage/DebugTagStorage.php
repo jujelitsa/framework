@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\storage;
+namespace jujelitsa\framework\storage;
 
 class DebugTagStorage implements DebugTagStorageInterface
 {

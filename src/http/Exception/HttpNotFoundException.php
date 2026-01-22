@@ -1,8 +1,8 @@
 <?php
 
-namespace framework\http\Exception;
+namespace jujelitsa\framework\http\Exception;
 
-use framework\http\Exception\HttpException;
+use jujelitsa\framework\http\Exception\HttpException;
 
 class HttpNotFoundException extends HttpException
 {

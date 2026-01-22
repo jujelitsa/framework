@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\view;
+namespace jujelitsa\framework\view;
 
 class ViewNotFoundException extends \RuntimeException
 {

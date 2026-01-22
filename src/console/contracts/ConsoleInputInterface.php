@@ -1,8 +1,8 @@
 <?php
 
-namespace framework\console\contracts;
+namespace jujelitsa\framework\console\contracts;
 
-use framework\console\CommandDefinition;
+use jujelitsa\framework\console\CommandDefinition;
 
 interface ConsoleInputInterface
 {

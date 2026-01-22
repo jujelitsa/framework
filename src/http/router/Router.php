@@ -1,13 +1,13 @@
 <?php
 
-namespace framework\http\router;
+namespace jujelitsa\framework\http\router;
 
-use framework\container\DiContainer;
-use framework\http\Exception\HttpNotFoundException;
-use framework\http\Response;
+use jujelitsa\framework\container\DiContainer;
+use jujelitsa\framework\http\Exception\HttpNotFoundException;
+use jujelitsa\framework\http\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use framework\http\Exception\HttpBadRequestException;
+use jujelitsa\framework\http\Exception\HttpBadRequestException;
 
 class Router implements HTTPRouterInterface, MiddlewareAssignable
 {

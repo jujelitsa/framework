@@ -1,15 +1,15 @@
 <?php
 
-namespace framework\console\plugins;
+namespace jujelitsa\framework\console\plugins;
 
-use framework\console\ConsoleEvent;
-use framework\console\contracts\ConsoleInputInterface;
-use framework\console\contracts\ConsoleInputPluginInterface;
-use framework\console\contracts\ConsoleKernelInterface;
-use framework\console\contracts\ConsoleOutputInterface;
-use framework\event_dispatcher\EventDispatcherInterface;
-use framework\event_dispatcher\Message;
-use framework\event_dispatcher\ObserverInterface;
+use jujelitsa\framework\console\ConsoleEvent;
+use jujelitsa\framework\console\contracts\ConsoleInputInterface;
+use jujelitsa\framework\console\contracts\ConsoleInputPluginInterface;
+use jujelitsa\framework\console\contracts\ConsoleKernelInterface;
+use jujelitsa\framework\console\contracts\ConsoleOutputInterface;
+use jujelitsa\framework\event_dispatcher\EventDispatcherInterface;
+use jujelitsa\framework\event_dispatcher\Message;
+use jujelitsa\framework\event_dispatcher\ObserverInterface;
 
 class CommandSaveFilePlugin implements ConsoleInputPluginInterface, ObserverInterface
 {

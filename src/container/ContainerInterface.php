@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\container;
+namespace jujelitsa\framework\container;
 
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 

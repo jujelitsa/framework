@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\http\contracts;
+namespace jujelitsa\framework\http\contracts;
 
 
 use Psr\Http\Message\ResponseInterface;

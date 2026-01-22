@@ -1,12 +1,12 @@
 <?php
 
-namespace framework\http\errorHandler\strategy;
+namespace jujelitsa\framework\http\errorHandler\strategy;
 
-use framework\EnvConfigurationStorage;
-use framework\http\contracts\RenderStrategyInterface;
-use framework\storage\DebugTagStorageInterface;
-use framework\view\View;
-use framework\view\ViewRendererInterface;
+use jujelitsa\framework\EnvConfigurationStorage;
+use jujelitsa\framework\http\contracts\RenderStrategyInterface;
+use jujelitsa\framework\storage\DebugTagStorageInterface;
+use jujelitsa\framework\view\View;
+use jujelitsa\framework\view\ViewRendererInterface;
 
 class HtmlRenderStrategy implements RenderStrategyInterface
 {
