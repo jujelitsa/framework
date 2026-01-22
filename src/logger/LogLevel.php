@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\logger;
+namespace jujelitsa\framework\logger;
 
 enum LogLevel: string
 {

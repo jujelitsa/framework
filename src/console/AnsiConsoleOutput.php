@@ -1,10 +1,10 @@
 <?php
 
-namespace framework\console;
+namespace jujelitsa\framework\console;
 
-use framework\console\contracts\ConsoleKernelInterface;
-use framework\console\contracts\ConsoleOutputInterface;
-use framework\container\ContainerInterface;
+use jujelitsa\framework\console\contracts\ConsoleKernelInterface;
+use jujelitsa\framework\console\contracts\ConsoleOutputInterface;
+use jujelitsa\framework\container\ContainerInterface;
 
 /**
  * Обработка вывода в терминал консоли

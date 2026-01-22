@@ -1,8 +1,8 @@
 <?php
 
-namespace framework\event_dispatcher;
+namespace jujelitsa\framework\event_dispatcher;
 
-use framework\event_dispatcher\Message;
+use jujelitsa\framework\event_dispatcher\Message;
 
 interface ObserverInterface
 {

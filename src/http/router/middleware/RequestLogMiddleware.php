@@ -1,9 +1,9 @@
 <?php
 
-namespace framework\http\router\middleware;
+namespace jujelitsa\framework\http\router\middleware;
 
-use framework\http\router\MiddlewareInterface;
-use framework\logger\LoggerInterface;
+use jujelitsa\framework\http\router\MiddlewareInterface;
+use jujelitsa\framework\logger\LoggerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

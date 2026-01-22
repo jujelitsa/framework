@@ -1,11 +1,11 @@
 <?php
 
-namespace framework\http\router\middleware;
+namespace jujelitsa\framework\http\router\middleware;
 
-use framework\contracts\ErrorHandlerInterface;
-use framework\http\enum\ContentTypeEnum;
-use framework\http\router\MiddlewareInterface;
-use framework\logger\LoggerInterface;
+use jujelitsa\framework\contracts\ErrorHandlerInterface;
+use jujelitsa\framework\http\enum\ContentTypeEnum;
+use jujelitsa\framework\http\router\MiddlewareInterface;
+use jujelitsa\framework\logger\LoggerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

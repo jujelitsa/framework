@@ -1,9 +1,9 @@
 <?php
 
-namespace framework\view;
+namespace jujelitsa\framework\view;
 
-use framework\view\ViewRendererInterface;
-use framework\view\ViewNotFoundException;
+use jujelitsa\framework\view\ViewRendererInterface;
+use jujelitsa\framework\view\ViewNotFoundException;
 
 class View implements ViewRendererInterface
 {

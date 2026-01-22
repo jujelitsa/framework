@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\console;
+namespace jujelitsa\framework\console;
 
 enum ConsoleEvent: string
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace framework\http\router;
+namespace jujelitsa\framework\http\router;
 
 class Route implements MiddlewareAssignable
 {

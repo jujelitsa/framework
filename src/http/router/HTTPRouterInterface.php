@@ -1,8 +1,8 @@
 <?php
 
-namespace framework\http\router;
+namespace jujelitsa\framework\http\router;
 
-use framework\http\Exception\HttpNotFoundException;
+use jujelitsa\framework\http\Exception\HttpNotFoundException;
 use Psr\Http\Message\ServerRequestInterface;
 
 interface HTTPRouterInterface
