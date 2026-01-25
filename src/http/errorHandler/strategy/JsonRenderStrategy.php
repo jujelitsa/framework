@@ -14,7 +14,7 @@ class JsonRenderStrategy implements RenderStrategyInterface
     public function render(\Throwable $exception): string
     {
         return json_encode([
-            'massage' => $exception->getMessage(),
+            'message' => $exception->getMessage(),
             'x-debug-tag' => $this->debugTagStorage->getTag(),
         ], JSON_UNESCAPED_UNICODE);
     }

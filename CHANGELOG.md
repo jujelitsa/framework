@@ -5,6 +5,16 @@
 Формат основан на [стандарте формата CHANGELOG](https://keepachangelog.com/en/1.0.0/),
 и придерживается [правил версионирования](https://semver.org/spec/v2.0.0.html).
 
+## [ [0.2.0](https://github.com/jujelitsa/framework/releases/tag/0.2.0) ] - 25.01.2026
+
+- Реализовано:
+  - X-API-KEY авторизация
+- Исправлено:
+  - Опечатка json ошибки
+  - Обработка статуса запроса в HTTPKernel
+  - Обработка путсого тела ответа в HTTPKernel
+  - Страница ошибки http
+
 ## [ [0.1.1](https://github.com/jujelitsa/framework/releases/tag/0.1.1) ] - 22.01.2026
 
 - Исправлено:
