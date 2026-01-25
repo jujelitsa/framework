@@ -8,15 +8,17 @@
 
 use jujelitsa\framework\EnvironmentModeEnum;
 
-if ($exception->getStatusCode() >= 400 && $exception->getStatusCode() < 500) {
+$statusCode = method_exists($exception, 'getStatusCode') === true ? $exception->getStatusCode() : 500;
+
+if ($statusCode >= 400 && $statusCode < 500) {
     $title =
         "Запрос не может быть обработан\n" .
-        "Ошибка: {$exception->getStatusCode()}\n" .
+        "Ошибка: {$statusCode}\n" .
         $exception->getMessage();
-    $message =  "идентификатор сеанса: {$debugTag}";
+    $message = "идентификатор сеанса: {$debugTag}";
 }
 
-if ($exception->getStatusCode() >= 500) {
+if ($statusCode >= 500) {
     $title =
         "Запрос не может быть обработан\n".
         "Произошла внутренняя ошибка сервера";

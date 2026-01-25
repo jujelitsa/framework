@@ -42,10 +42,11 @@ class HttpKernel implements HttpKernelInterface
             }
 
             if (is_array($result) === false) {
-                $response->getBody()->write($result);
+                $response->getBody()->write($result ?? '');
                 $response = $response->withHeader('Content-Type', 'text/html');
             }
 
+            $response = $response->withStatus($this->getStatus($request->getMethod()));
         } catch (HttpException $e) {
             $this->logger->error($e);
             $response = $response->withStatus($e->getStatusCode(), $e->getMessage());
@@ -73,5 +74,17 @@ class HttpKernel implements HttpKernelInterface
         }
 
         return $response->withHeader('Content-Type', 'text/html');
+    }
+
+    private function getStatus(string $method): int
+    {
+        $method = strtoupper($method);
+        return match($method) {
+            'GET' => 200,
+            'POST' => 201,
+            'PUT' => 200,
+            'PATCH' => 200,
+            'DELETE' => 204,
+        };
     }
 }
