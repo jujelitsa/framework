@@ -24,7 +24,7 @@ class XApiKeyMidlleware implements MiddlewareInterface
             throw new UnauthorizedException('Отсутствует заголовок X-API-KEY');
         }
 
-        if ($apiKey[0] ?? null === $this->xApiKey) {
+        if (($apiKey[0] ?? null) === $this->xApiKey) {
             $next($request, $response);
             return;
         }
