@@ -203,11 +203,11 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
             $hasValue = array_key_exists($param['name'], $queryParams);
 
             if ($hasValue === true) {
-                $values[] = $queryParams[$param['name']];
+                $values[$param['name']] = $queryParams[$param['name']];
             }
 
             if ($hasValue === false && $param['required'] === false) {
-                $values[] = $param['default'];
+                $values[$param['name']] = $param['default'];
             }
 
             if ($hasValue === false && $param['required'] === true) {
@@ -235,6 +235,7 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
         $this->runMiddlewares($middlewares, $request, $response);
 
         $params = $this->mapParams($request->getQueryParams(), $route->params);
+
         $handler = $route->getHandler();
 
         if (is_callable($handler) === true) {
@@ -243,7 +244,17 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
 
         if (is_string($handler) === true && str_contains($handler, '::') === true) {
             [$class, $method] = explode('::', $handler, 2);
-            return $this->container->get($class)->$method($request, $response, ...$params);
+
+            $allParams = [
+                'request' => $request,
+                'response' => $response,
+            ];
+
+            foreach ($params as $key => $value) {
+                $allParams[$key] = $value;
+            }
+
+            return $this->container->call($class, $method, $allParams);
         }
 
         throw new \RuntimeException('Неверный тип handler.');
