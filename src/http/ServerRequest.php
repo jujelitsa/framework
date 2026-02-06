@@ -9,7 +9,7 @@ use Psr\Http\Message\StreamInterface;
 class ServerRequest extends Message implements ServerRequestInterface
 {
     private string $method;
-    private array $parsedBody;
+    private ?array $parsedBody = null;
     private array $attributes = [];
 
     public function __construct(
@@ -111,7 +111,23 @@ class ServerRequest extends Message implements ServerRequestInterface
 
     public function getParsedBody()
     {
-        return $this->parsedBody;
+        if ($this->parsedBody !== null) {
+            return $this->parsedBody;
+        }
+
+        if (str_contains($this->getHeaderLine('Content-Type'), 'application/json') === true) {
+            $currentPos = $this->body->tell();
+            $this->body->rewind();
+
+            $json = $this->body->getContents();
+
+            $this->body->seek($currentPos);
+
+            $this->parsedBody = empty($json) === false ? json_decode($json, true) : [];
+            return $this->parsedBody;
+        }
+
+        return null;
     }
 
     public function withParsedBody($data): self
