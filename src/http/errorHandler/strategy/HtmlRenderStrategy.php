@@ -2,10 +2,8 @@
 
 namespace jujelitsa\framework\http\errorHandler\strategy;
 
-use jujelitsa\framework\EnvConfigurationStorage;
+use jujelitsa\framework\debugTagStorage\DebugTagStorageInterface;
 use jujelitsa\framework\http\contracts\RenderStrategyInterface;
-use jujelitsa\framework\storage\DebugTagStorageInterface;
-use jujelitsa\framework\view\View;
 use jujelitsa\framework\view\ViewRendererInterface;
 
 class HtmlRenderStrategy implements RenderStrategyInterface

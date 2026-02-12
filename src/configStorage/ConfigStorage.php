@@ -1,8 +1,6 @@
 <?php
 
-namespace jujelitsa\framework\storage;
-
-use jujelitsa\framework\exception\ConfigKeyNotFoundException;
+namespace jujelitsa\framework\configStorage;
 
 final class ConfigStorage implements ConfigStorageInterface
 {
