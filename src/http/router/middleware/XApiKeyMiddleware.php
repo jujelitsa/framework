@@ -3,13 +3,15 @@
 namespace jujelitsa\framework\http\router\middleware;
 
 use jujelitsa\framework\http\router\MiddlewareInterface;
+use jujelitsa\framework\storage\ConfigStorageInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class XApiKeyMidlleware implements MiddlewareInterface
+class XApiKeyMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private readonly string $xApiKey,
+        private readonly ConfigStorageInterface $configStorage,
+        private readonly string $key = 'API_AUTH_KEY',
     ) {}
 
     /**
@@ -24,7 +26,7 @@ class XApiKeyMidlleware implements MiddlewareInterface
             throw new UnauthorizedException('Отсутствует заголовок X-API-KEY');
         }
 
-        if (($apiKey[0] ?? null) === $this->xApiKey) {
+        if (($apiKey[0] ?? null) === $this->configStorage->get($this->key)) {
             $next($request, $response);
             return;
         }

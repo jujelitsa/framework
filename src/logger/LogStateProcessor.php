@@ -4,10 +4,10 @@ namespace jujelitsa\framework\logger;
 
 use Exception;
 use jujelitsa\framework\ApplicationTypeEnum;
+use jujelitsa\framework\debugTagStorage\DebugTagStorageInterface;
 use jujelitsa\framework\event_dispatcher\EventDispatcherInterface;
 use jujelitsa\framework\event_dispatcher\LogContextEvent;
 use jujelitsa\framework\event_dispatcher\Message;
-use jujelitsa\framework\storage\DebugTagStorageInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 class LogStateProcessor
@@ -15,8 +15,8 @@ class LogStateProcessor
     private DTO $storage;
 
     public function __construct(
-        string                                    $index,
-        string                                    $actionType,
+        string $index,
+        string $actionType,
         private readonly EventDispatcherInterface $dispatcher,
         private readonly DebugTagStorageInterface $debugTagStorage,
         private readonly ?ServerRequestInterface  $request = null,
