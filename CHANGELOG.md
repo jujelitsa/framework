@@ -20,13 +20,6 @@
 - Исправлено:
   - Метод parsedBody в ServerRequest
 
-## [ [0.2.2](https://github.com/jujelitsa/framework/releases/tag/0.2.2) ] - 06.02.2026
-
-- Реализовано:
-  - Класс ConfigStorage
-- Исправлено:
-  - Метод parsedBody в ServerRequest
-
 ## [ [0.2.1](https://github.com/jujelitsa/framework/releases/tag/0.2.1) ] - 25.01.2026
 
 - Исправлено:
