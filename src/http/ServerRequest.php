@@ -109,9 +109,9 @@ class ServerRequest extends Message implements ServerRequestInterface
         return $new;
     }
 
-    public function getParsedBody()
+    public function getParsedBody(): ?array
     {
-        if ($this->parsedBody !== null) {
+        if (str_contains($this->getHeaderLine('Content-Type'), 'application/x-www-form-urlencoded') === true) {
             return $this->parsedBody;
         }
 

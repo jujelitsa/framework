@@ -2,8 +2,8 @@
 
 namespace jujelitsa\framework\http\errorHandler\strategy;
 
+use jujelitsa\framework\debugTagStorage\DebugTagStorageInterface;
 use jujelitsa\framework\http\contracts\RenderStrategyInterface;
-use jujelitsa\framework\storage\DebugTagStorageInterface;
 
 class JsonRenderStrategy implements RenderStrategyInterface
 {

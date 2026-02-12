@@ -1,6 +1,6 @@
 <?php
 
-namespace jujelitsa\framework\storage;
+namespace jujelitsa\framework\configStorage;
 
 interface ConfigStorageInterface
 {
