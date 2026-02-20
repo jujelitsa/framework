@@ -69,40 +69,36 @@ class DiContainer implements ContainerInterface
         $resolvedArgs = [];
 
         foreach ($parameters as $param) {
-            $resolvedArgs[] = $this->resolveParameter($param, $args);
+            $name = $param->getName();
+
+            if (array_key_exists($name, $args) === true) {
+                $resolvedArgs[] = $args[$name];
+                continue;
+            }
+
+            $type = $param->getType();
+
+            if (($type === null || $type->isBuiltin() === true) && $param->isDefaultValueAvailable()) {
+                $resolvedArgs[] = $param->getDefaultValue();
+                continue;
+            }
+
+            $className = $type->getName();
+
+            try {
+                $resolvedArgs[] = $this->get($className);
+                continue;
+            } catch (\Throwable $e) {
+                if ($param->isDefaultValueAvailable() === true) {
+                    $resolvedArgs[] = $param->getDefaultValue();
+                    continue;
+                }
+
+                throw new DependencyNotFoundException('Не удалось разрешить зависимость ' . $className . ' для параметра ' . $name);
+            }
         }
 
         return $reflector->newInstanceArgs($resolvedArgs);
-    }
-
-    private function resolveParameter(\ReflectionParameter $param, array $args): mixed
-    {
-        $name = $param->getName();
-
-        if (array_key_exists($name, $args) === true) {
-            return $args[$name];
-        }
-
-        $type = $param->getType();
-
-        if (($type === null || $type->isBuiltin() === true) && $param->isDefaultValueAvailable()) {
-                return $param->getDefaultValue();
-        }
-
-        $className = $type->getName();
-
-        try {
-
-            return $this->get($className);
-
-        } catch (\Throwable $e) {
-
-            if ($param->isDefaultValueAvailable() === true) {
-                return $param->getDefaultValue();
-            }
-
-            throw new DependencyNotFoundException('Не удалось разрешить зависимость ' . $className . ' для параметра ' . $name);
-        }
     }
 
     /**

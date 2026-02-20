@@ -2,8 +2,8 @@
 
 namespace jujelitsa\framework\http\router\middleware;
 
+use jujelitsa\framework\configStorage\ConfigStorageInterface;
 use jujelitsa\framework\http\router\MiddlewareInterface;
-use jujelitsa\framework\storage\ConfigStorageInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

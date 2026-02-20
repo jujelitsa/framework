@@ -297,4 +297,10 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
     {
         return $this->middlewares;
     }
+
+    public function addResource(string $name, string $controller, array $config = []): void
+    {
+        (new Resource($name, $controller, $config))->build($this);
+    }
+
 }
