@@ -110,18 +110,20 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
     {
 
         $params = [];
-        $pattern = '/\{(\?)?([a-zA-Z_][a-zA-Z0-9_]*)=?([^}]*)\}/';
+        $pattern = '/\{(\?)?([a-zA-Z_][a-zA-Z0-9_]*)(?:\|([a-zA-Z]+))?(?:=([^}]*))?\}/';
         preg_match_all($pattern, $route, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {
             $optional = $match[1] === '?';
             $name = $match[2];
-            $default = $optional && isset($match[3]) === true && $match[3] !== '' ? $match[3] : null;
+            $type = $match[3] ?? 'string';
+            $default = $optional && isset($match[4]) && $match[4] !== '' ? $match[4] : null;
 
             $params[] = [
                 'name' => $name,
                 'required' => !$optional,
                 'default' => $default,
+                'type' => $type,
             ];
         }
 
@@ -165,7 +167,10 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
         $prefix = implode('/', $this->groupPrefixStack);
         $path = $prefix !== '' ? '/' . $prefix . $basePath : $basePath;
 
-        $params = $paramString ? $this->prepareParams($paramString) : [];
+        $pathParams = $this->prepareParams($basePath);
+        $queryParams = $paramString ? $this->prepareParams($paramString) : [];
+
+        $params = array_merge($pathParams, $queryParams);
 
         $routeObj = new Route($method, $path, $params, $handler);
 
@@ -203,11 +208,14 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
             $hasValue = array_key_exists($param['name'], $queryParams);
 
             if ($hasValue === true) {
-                $values[$param['name']] = $queryParams[$param['name']];
+                $value = $queryParams[$param['name']];
+                $values[$param['name']] = $this->castType($value, $param['type']);
+                continue;
             }
 
             if ($hasValue === false && $param['required'] === false) {
                 $values[$param['name']] = $param['default'];
+                continue;
             }
 
             if ($hasValue === false && $param['required'] === true) {
@@ -216,37 +224,82 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
         }
 
         return $values;
-
     }
+
+    private function castType(string $value, string $type): mixed
+    {
+        return match ($type) {
+            'integer' => filter_var($value, FILTER_VALIDATE_INT)
+                ?? throw new HttpBadRequestException("{$value} не является integer"),
+
+            'float' => filter_var($value, FILTER_VALIDATE_FLOAT)
+                ?? throw new HttpBadRequestException("{$value} не является float"),
+
+            'string' => preg_match('/^[\p{L}]+$/u', $value)
+                ? $value
+                : throw new HttpBadRequestException("{$value} не является string"),
+
+            default => throw new HttpBadRequestException("Неизвестный тип параметра: {$type}")
+        };
+    }
+
 
     public function dispatch(ServerRequestInterface $request): mixed
     {
         $method = $request->getMethod();
         $path   = $request->getUri()->getPath();
 
-        $route = $this->routes[$method][$path] ?? null;
+        if (!isset($this->routes[$method])) {
+            throw new HttpNotFoundException("Метод {$method} не поддерживается.");
+        }
+
+        $route = null;
+        $pathParams = [];
+
+        foreach ($this->routes[$method] as $routeObj) {
+
+            $pattern = $this->convertPathToRegex($routeObj->path, $routeObj->params);
+
+            if (preg_match($pattern, $path, $matches)) {
+
+                $route = $routeObj;
+
+                foreach ($routeObj->params as $param) {
+                    if (isset($matches[$param['name']])) {
+                        $pathParams[$param['name']] =
+                            $this->castType($matches[$param['name']], $param['type']);
+                    }
+                }
+
+                break;
+            }
+        }
 
         if ($route === null) {
             throw new HttpNotFoundException("Маршрут не найден: {$method} {$path}");
         }
 
         $response = $this->container->get(ResponseInterface::class);
+
         $middlewares = array_merge($this->middlewares, $route->getMiddlewares());
         $this->runMiddlewares($middlewares, $request, $response);
 
-        $params = $this->mapParams($request->getQueryParams(), $route->params);
+        $queryParams = $request->getQueryParams();
+        $allParams = array_merge($queryParams, $pathParams);
 
+        $params = $this->mapParams($allParams, $route->params);
         $handler = $route->getHandler();
 
         if (is_callable($handler) === true) {
-            return $handler($request, $response, ...$params);
+            return $handler($request, $response, ...array_values($params));
         }
 
         if (is_string($handler) === true && str_contains($handler, '::') === true) {
-            [$class, $method] = explode('::', $handler, 2);
+
+            [$class, $methodName] = explode('::', $handler, 2);
 
             $allParams = [
-                'request' => $request,
+                'request'  => $request,
                 'response' => $response,
             ];
 
@@ -254,7 +307,7 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
                 $allParams[$key] = $value;
             }
 
-            return $this->container->call($class, $method, $allParams);
+            return $this->container->call($class, $methodName, $allParams);
         }
 
         throw new \RuntimeException('Неверный тип handler.');
@@ -265,7 +318,7 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
         $next = function (): void {};
 
         foreach (array_reverse($middlewares) as $middleware) {
-            $next = function () use ($middleware, $request, $response, $next) : void {
+            $next = function () use ($middleware, $request, $response, $next): void {
                 if (is_callable($middleware) === true) {
                     $middleware($request, $response, $next);
                     return;
@@ -296,6 +349,26 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
     public function getMiddlewares(): array
     {
         return $this->middlewares;
+    }
+
+    private function convertPathToRegex(string $path, array $params): string
+    {
+        foreach ($params as $param) {
+
+            $typePattern = match ($param['type']) {
+                'integer' => '\d+',
+                'string'  => '[^/]+',
+                default   => '[^/]+',
+            };
+
+            $path = preg_replace(
+                '/\{' . $param['name'] . '\|[^}]+\}/',
+                '(?P<' . $param['name'] . '>' . $typePattern . ')',
+                $path
+            );
+        }
+
+        return '#^' . $path . '$#';
     }
 
     public function addResource(string $name, string $controller, array $config = []): void
