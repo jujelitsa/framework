@@ -4,5 +4,5 @@ namespace jujelitsa\framework\configStorage;
 
 interface ConfigStorageInterface
 {
-    public function get(string $key): ?string;
+    public function get(string $key): mixed;
 }
