@@ -34,7 +34,7 @@ class Resource
             ],
             'view' => [
                 'method' => 'GET',
-                'path' => "{$this->name}/{:id}",
+                'path' => "{$this->name}/{id|integer}",
                 'action' => 'actionView',
                 'middleware' => [],
             ],
@@ -46,19 +46,19 @@ class Resource
             ],
             'put' => [
                 'method' => 'PUT',
-                'path' => "{$this->name}/{:id}",
+                'path' => "{$this->name}/{id|integer}",
                 'action' => 'actionUpdate',
                 'middleware' => [],
             ],
             'patch' => [
                 'method' => 'PATCH',
-                'path' => "{$this->name}/{:id}",
+                'path' => "{$this->name}/{id|integer}",
                 'action' => 'actionPatch',
                 'middleware' => [],
             ],
             'delete' => [
                 'method' => 'DELETE',
-                'path' => "{$this->name}/{:id}",
+                'path' => "{$this->name}/{id|integer}",
                 'action' => 'actionDelete',
                 'middleware' => [],
             ],

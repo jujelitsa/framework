@@ -5,7 +5,9 @@ namespace jujelitsa\framework\http\router;
 use jujelitsa\framework\container\DiContainer;
 use jujelitsa\framework\http\Exception\HttpNotFoundException;
 use jujelitsa\framework\http\Response;
+use jujelitsa\framework\validate\RuleEnum;
 use Psr\Http\Message\ResponseInterface;
+use jujelitsa\framework\validate\Validator;
 use Psr\Http\Message\ServerRequestInterface;
 use jujelitsa\framework\http\Exception\HttpBadRequestException;
 
@@ -15,8 +17,12 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
     private array $groupPrefixStack = [];
     private array $groupStack = [];
     private array $middlewares = [];
+    private array $customCasts = [];
 
-    public function __construct(private DiContainer $container)
+    public function __construct(
+        private DiContainer $container, 
+        private Validator $validator
+    )
     {
     }
 
@@ -209,7 +215,7 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
 
             if ($hasValue === true) {
                 $value = $queryParams[$param['name']];
-                $values[$param['name']] = $this->castType($value, $param['type']);
+                $values[$param['name']] = $this->validateParam($value, $param['type']);
                 continue;
             }
 
@@ -226,30 +232,45 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
         return $values;
     }
 
-    private function castType(string $value, string $type): mixed
+    public function addCast(string $type, callable $caster): self
     {
-        return match ($type) {
-            'integer' => filter_var($value, FILTER_VALIDATE_INT)
-                ?? throw new HttpBadRequestException("{$value} не является integer"),
-
-            'float' => filter_var($value, FILTER_VALIDATE_FLOAT)
-                ?? throw new HttpBadRequestException("{$value} не является float"),
-
-            'string' => preg_match('/^[\p{L}]+$/u', $value)
-                ? $value
-                : throw new HttpBadRequestException("{$value} не является string"),
-
-            default => throw new HttpBadRequestException("Неизвестный тип параметра: {$type}")
+        $this->customCasts[$type] = $caster;
+        return $this;
+    }
+    
+    private function validateParam(string $value, string $type): mixed
+    {
+        if (isset($this->customCasts[$type]) === true) {
+            if ($this->validator->hasRule($type) === false) {
+                throw new HttpBadRequestException("Неизвестный тип параметра: {$type}");
+            }
+            
+            $this->validator->validate($value, $type);
+            return ($this->customCasts[$type])($value);
+        }
+        
+        $ruleName = RuleEnum::tryFrom($type);
+        
+        if ($ruleName === null) {
+            throw new HttpBadRequestException("Неизвестный тип параметра: {$type}");
+        }
+        
+        $this->validator->validate($value, $ruleName->value);
+        
+        return match ($ruleName) {
+            RuleEnum::INTEGER => (int)$value,
+            RuleEnum::FLOAT => (float)$value,
+            RuleEnum::STRING => (string)$value,
+            RuleEnum::BOOLEAN => filter_var($value, FILTER_VALIDATE_BOOLEAN),
         };
     }
-
 
     public function dispatch(ServerRequestInterface $request): mixed
     {
         $method = $request->getMethod();
         $path   = $request->getUri()->getPath();
 
-        if (!isset($this->routes[$method])) {
+        if (isset($this->routes[$method]) === false) {
             throw new HttpNotFoundException("Метод {$method} не поддерживается.");
         }
 
@@ -257,7 +278,6 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
         $pathParams = [];
 
         foreach ($this->routes[$method] as $routeObj) {
-
             $pattern = $this->convertPathToRegex($routeObj->path, $routeObj->params);
 
             if (preg_match($pattern, $path, $matches)) {
@@ -265,9 +285,9 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
                 $route = $routeObj;
 
                 foreach ($routeObj->params as $param) {
-                    if (isset($matches[$param['name']])) {
+                    if (isset($matches[$param['name']]) === true) {
                         $pathParams[$param['name']] =
-                            $this->castType($matches[$param['name']], $param['type']);
+                            $this->validateParam($matches[$param['name']], $param['type']);
                     }
                 }
 
@@ -280,7 +300,6 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
         }
 
         $response = $this->container->get(ResponseInterface::class);
-
         $middlewares = array_merge($this->middlewares, $route->getMiddlewares());
         $this->runMiddlewares($middlewares, $request, $response);
 
@@ -290,27 +309,41 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
         $params = $this->mapParams($allParams, $route->params);
         $handler = $route->getHandler();
 
+        $result = null;
+
         if (is_callable($handler) === true) {
-            return $handler($request, $response, ...array_values($params));
+            $result = $handler($request, $response, ...array_values($params));
         }
-
-        if (is_string($handler) === true && str_contains($handler, '::') === true) {
-
+        
+        if ($result === null && is_string($handler) === true && str_contains($handler, '::') === true) {
             [$class, $methodName] = explode('::', $handler, 2);
 
-            $allParams = [
-                'request'  => $request,
+            $callParams = [
+                'request' => $request,
                 'response' => $response,
             ];
 
             foreach ($params as $key => $value) {
-                $allParams[$key] = $value;
+                $callParams[$key] = $value;
             }
 
-            return $this->container->call($class, $methodName, $allParams);
+            $result = $this->container->call($class, $methodName, $callParams);
+        }
+        
+        if ($result === null) {
+            throw new \RuntimeException('Неверный тип handler.');
         }
 
-        throw new \RuntimeException('Неверный тип handler.');
+        return $this->normalizeResponse($result);
+    }
+
+    private function normalizeResponse(mixed $result): mixed
+    {
+        if (is_object($result) === true && $result instanceof \jujelitsa\framework\http\response\Response === true) {
+            return $result->getBody();
+        }
+        
+        return $result;
     }
 
     private function runMiddlewares(array $middlewares, ServerRequestInterface $request, ResponseInterface $response): void

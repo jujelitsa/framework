@@ -2,7 +2,9 @@
 
 namespace jujelitsa\framework\query\files;
 
-final readonly class StatementParameters// extends StatementParametersInterface
+use jujelitsa\framework\query\StatementParametersInterface;
+
+final readonly class StatementParameters extends StatementParametersInterface
 {
     public function __construct(
         public string $resource,
