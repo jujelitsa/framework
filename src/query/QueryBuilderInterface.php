@@ -2,6 +2,8 @@
 
 namespace jujelitsa\framework\query;
 
+use jujelitsa\framework\query\StatementParametersInterface;
+
 interface QueryBuilderInterface
 {
     public function select(array|string $fields): static;
