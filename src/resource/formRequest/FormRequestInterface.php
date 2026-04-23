@@ -17,4 +17,8 @@ interface FormRequestInterface
     public function setSkipEmptyValues(): void;
 
     public function getValues(): array;
+
+    public function setValue(string $field, mixed $value): void;
+
+    public function getFields(): array;
 }

@@ -12,7 +12,7 @@ final class FormRequestFactory implements FormRequestFactoryInterface
         private readonly ContainerInterface $container
     ) {}
 
-    public function create(string $formClassName): FormRequestInterface
+    public function create(string $formClassName, array $rules = []): FormRequestInterface
     {
         if (class_exists($formClassName) === false) {
             throw new \InvalidArgumentException("Класс формы {$formClassName} не найден");
@@ -24,10 +24,17 @@ final class FormRequestFactory implements FormRequestFactoryInterface
             throw new \InvalidArgumentException("Класс {$formClassName} должен реализовывать FormRequestInterface");
         }
 
-        if ($this->request !== null) {
-            $parsedBody = $this->request->getParsedBody() ?? [];
-            if (method_exists($form, 'setValues') === true) {
-                $form->setValues($parsedBody);
+        if (empty($rules) === false) {
+            foreach ($rules as $field => $fieldRules) {
+                $form->addRule([$field], $fieldRules);
+            }
+        }
+
+        $parsedBody = $this->request->getParsedBody() ?? [];
+
+        foreach ($form->getFields() as $field) {
+            if (array_key_exists($field, $parsedBody)) {
+                $form->setValue($field, $parsedBody[$field]);
             }
         }
 
