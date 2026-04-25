@@ -76,6 +76,56 @@ abstract class AbstractFormRequest implements FormRequestInterface
      */
     private function validateByRule(array $values, array $attributes, array|string $rule): void
     {
+        $ruleName = is_array($rule) ? $rule[0] : $rule;
+        
+        if ($ruleName === 'unique') {
+            if (count($attributes) === 1) {
+                $value = $this->getValueToValidate($attributes[0], $values);
+                
+                if ($this->skipEmptyValues === true && ($value === '' || $value === null)) {
+                    return;
+                }
+                
+                try {
+                    $ruleWithTarget = $rule;
+                    if (is_array($ruleWithTarget)) {
+                        $ruleWithTarget['target'] = $attributes[0];
+                    }
+                    $this->validator->validate($value, $ruleWithTarget);
+                } catch (ValidateException $e) {
+                    $this->addError($attributes[0], $e->getMessage());
+                }
+            } 
+            if (count($attributes) !== 1) {
+                $allEmpty = true;
+                foreach ($attributes as $attribute) {
+                    if (empty($values[$attribute]) === false) {
+                        $allEmpty = false;
+                        break;
+                    }
+                }
+                
+                if ($allEmpty === true) {
+                    return;
+                }
+                
+                try {
+                    $compositeValue = [];
+                    foreach ($attributes as $attribute) {
+                        $compositeValue[$attribute] = $values[$attribute] ?? null;
+                    }
+                    $ruleWithTarget = $rule;
+                    if (is_array($ruleWithTarget) === true && isset($ruleWithTarget['target']) === false) {
+                        $ruleWithTarget['target'] = $attributes;
+                    }
+                    $this->validator->validate($compositeValue, $ruleWithTarget);
+                } catch (ValidateException $e) {
+                    $this->addError($attributes[0], $e->getMessage());
+                }
+            }
+            return;
+        }
+        
         foreach ($attributes as $attribute) {
             $value = $this->getValueToValidate($attribute, $values);
 

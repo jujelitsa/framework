@@ -22,5 +22,7 @@ interface QueryBuilderInterface
 
     public function offset(int $offset): static;
 
+    public function reset(): static;
+
     public function getStatement(): StatementParametersInterface;
 }

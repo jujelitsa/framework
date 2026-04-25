@@ -6,7 +6,7 @@ use jujelitsa\framework\validate\RuleInterface;
 
 class RequiredRule implements RuleInterface
 {
-    public function validate(mixed $value): bool
+    public function validate(mixed $value, array $options = []): bool
     {
         if ($value === null) {
             return false;
