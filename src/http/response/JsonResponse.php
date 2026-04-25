@@ -2,15 +2,20 @@
 
 namespace jujelitsa\framework\http\response;
 
+use jujelitsa\framework\http\Response;
+use GuzzleHttp\Psr7\Stream;
+
 class JsonResponse extends Response
 {
-    public function __construct(mixed $data = null, int $status = 200)
+    public function __construct(mixed $data = null, int $status = 200, array $headers = [])
     {
-        $body = null;
-        if ($data !== null) {
-            $body = json_encode($data, JSON_UNESCAPED_UNICODE);
-        }
+        $content = $data !== null ? json_encode($data, JSON_UNESCAPED_UNICODE) : '';
         
-        parent::__construct($status, $body, 'application/json');
+        $stream = new Stream(fopen('php://temp', 'r+'));
+        $stream->write($content);
+        
+        $headers['Content-Type'] = ['application/json'];
+        
+        parent::__construct($status, '', $headers, $stream);
     }
 }
