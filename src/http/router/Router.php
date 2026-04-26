@@ -334,15 +334,6 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
             throw new \RuntimeException('Неверный тип handler.');
         }
 
-        return $this->normalizeResponse($result);
-    }
-
-    private function normalizeResponse(mixed $result): mixed
-    {
-        if (is_object($result) === true && $result instanceof \jujelitsa\framework\http\response\Response === true) {
-            return $result->getBody();
-        }
-        
         return $result;
     }
 
