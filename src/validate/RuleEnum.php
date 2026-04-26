@@ -9,4 +9,5 @@ enum RuleEnum: string
     case STRING = 'string';
     case BOOLEAN = 'boolean';
     case REQUIRED = 'required';
+    case UNIQUE = 'unique';
 }

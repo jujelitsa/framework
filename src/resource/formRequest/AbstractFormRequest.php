@@ -11,7 +11,7 @@ abstract class AbstractFormRequest implements FormRequestInterface
     protected bool $skipEmptyValues = false;
     private array $errors = [];
     private array $values = [];
-    private array $dynamicRules = [];
+    private array $customRules = [];
 
     public function __construct(
         private readonly Validator $validator,
@@ -26,7 +26,6 @@ abstract class AbstractFormRequest implements FormRequestInterface
      *     [['name'], 'required'],
      *     [['name'], 'string'],
      *     [['email'], 'required'],
-     *     [['email'], 'email'],
      * ]
      */
     public function rules(): array
@@ -42,11 +41,10 @@ abstract class AbstractFormRequest implements FormRequestInterface
      * @return void
      * Пример:
      * $form->addRule(['name'], 'required');
-     * $form->addRule(['name'], ['string', 'min' => 3]);
      */
     public function addRule(array $attributes, array|string $rule): void
     {
-        $this->dynamicRules[] = [$attributes, $rule];
+        $this->customRules[] = [$attributes, $rule];
     }
 
     /**
@@ -76,6 +74,13 @@ abstract class AbstractFormRequest implements FormRequestInterface
      */
     private function validateByRule(array $values, array $attributes, array|string $rule): void
     {
+        $ruleName = is_array($rule) ? $rule[0] : $rule;
+        
+        if ($ruleName === 'unique') {
+            $this->processUniqueValidation($values, $attributes, $rule);
+            return;
+        }
+        
         foreach ($attributes as $attribute) {
             $value = $this->getValueToValidate($attribute, $values);
 
@@ -88,6 +93,51 @@ abstract class AbstractFormRequest implements FormRequestInterface
             } catch (ValidateException $e) {
                 $this->addAttributesError($attribute, $e->getMessage());
             }
+        }
+    }
+
+    private function processUniqueValidation(array $values, array $attributes, array|string $rule): void
+    {
+        if (count($attributes) === 1) {
+            $value = $this->getValueToValidate($attributes[0], $values);
+            
+            if ($this->skipEmptyValues === true && ($value === '' || $value === null)) {
+                return;
+            }
+            
+            try {
+                $ruleWithTarget = $rule;
+                if (is_array($ruleWithTarget) === true) {
+                    $ruleWithTarget['target'] = $attributes[0];
+                }
+                $this->validator->validate($value, $ruleWithTarget);
+            } catch (ValidateException $e) {
+                $this->addError($attributes[0], $e->getMessage());
+            }
+            return;
+        }
+        
+        foreach ($attributes as $attribute) {
+            if (empty($values[$attribute]) === false) {
+                break;
+            }
+            if ($attribute === $attributes[count($attributes) - 1]) {
+                return;
+            }
+        }
+        
+        try {
+            $compositeValue = [];
+            foreach ($attributes as $attribute) {
+                $compositeValue[$attribute] = $values[$attribute] ?? null;
+            }
+            $ruleWithTarget = $rule;
+            if (is_array($ruleWithTarget) === true && isset($ruleWithTarget['target']) === false) {
+                $ruleWithTarget['target'] = $attributes;
+            }
+            $this->validator->validate($compositeValue, $ruleWithTarget);
+        } catch (ValidateException $e) {
+            $this->addError($attributes[0], $e->getMessage());
         }
     }
 
@@ -147,14 +197,9 @@ abstract class AbstractFormRequest implements FormRequestInterface
     }
 
     /**
-     * Возврат всех ошибок валидации
+     * Возврат ошибок валидации
      *
      * @return array
-     * Пример:
-     * [
-     *     'name' => ['Поле name обязательно'],
-     *     'email' => ['Поле email должно быть валидным email адресом'],
-     * ]
      */
     public function getErrors(): array
     {
@@ -238,13 +283,13 @@ abstract class AbstractFormRequest implements FormRequestInterface
     }
 
     /**
-     * Получение всех правил (статических + динамических)
+     * Получение всех правил
      *
      * @return array
      */
     protected function getRules(): array
     {
-        return array_merge($this->rules(), $this->dynamicRules);
+        return array_merge($this->rules(), $this->customRules);
     }
 
     /**
@@ -260,7 +305,7 @@ abstract class AbstractFormRequest implements FormRequestInterface
      */
     public function clearRules(): void
     {
-        $this->dynamicRules = [];
+        $this->customRules = [];
     }
 
     /**

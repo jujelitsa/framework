@@ -36,6 +36,10 @@ class HttpKernel implements HttpKernelInterface
         try {
             $result = $this->router->dispatch($request);
 
+            if ($result instanceof ResponseInterface === true) {
+                return $result;
+            }
+
             if (is_array($result) === true) {
                 $response->getBody()->write(json_encode($result, JSON_UNESCAPED_UNICODE));
                 $response = $response->withHeader('Content-Type', 'application/json');

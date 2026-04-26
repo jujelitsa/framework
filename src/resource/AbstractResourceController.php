@@ -134,6 +134,10 @@ abstract class AbstractResourceController
         $this->logger->info("Список ресурсов {$resourceName} запрошен");
 
         $data = $this->resourceDataFilter->filterAll($queryParams);
+
+        if (empty($queryParams['filter']) === false && empty($data) === true) {
+            throw new HttpNotFoundException('Данных не найдены');
+        }
         
         $this->eventDispatcher->trigger(ResourceEvent::AFTER_LIST->value, new Message([
             'resource' => $resourceName,

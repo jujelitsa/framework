@@ -10,6 +10,7 @@ use jujelitsa\framework\validate\rules\FloatRule;
 use jujelitsa\framework\validate\rules\StringRule;
 use jujelitsa\framework\validate\rules\BooleanRule;
 use jujelitsa\framework\validate\rules\RequiredRule;
+use jujelitsa\framework\validate\rules\UniqueRule;
 
 class Validator
 {
@@ -26,6 +27,7 @@ class Validator
             RuleEnum::STRING->value => StringRule::class,
             RuleEnum::BOOLEAN->value => BooleanRule::class,
             RuleEnum::REQUIRED->value => RequiredRule::class,
+            RuleEnum::UNIQUE->value => UniqueRule::class,
         ];
         
         $this->rules = array_merge($defaultRules, $customRules);
@@ -37,12 +39,22 @@ class Validator
         return $this;
     }
     
-    public function validate(mixed $value, string $type): void
+    public function validate(mixed $value, string|array $rule): void
     {
-        $rule = $this->getRule($type);
+        $options = [];
         
-        if ($rule->validate($value) === false) {
-            throw new ValidateException($rule->getErrorMessage((string)$value));
+        if (is_array($rule) === true) {
+            $ruleName = $rule[0] ?? throw new ValidateException('Правило валидации не указано');
+            $options = array_slice($rule, 1, null, true);
+        } 
+        if (is_array($rule) === false) {
+            $ruleName = $rule;
+        }
+
+        $ruleObject = $this->getRule($ruleName);
+        
+        if ($ruleObject->validate($value, $options) === false) {
+            throw new ValidateException($ruleObject->getErrorMessage((string)$value));
         }
     }
     

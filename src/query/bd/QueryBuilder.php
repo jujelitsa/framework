@@ -17,6 +17,20 @@ final class QueryBuilder implements QueryBuilderInterface
     private ?string $offset = null;
     private array $bindings = [];
 
+    public function reset(): static
+    {
+        $this->select = null;
+        $this->from = null;
+        $this->where = null;
+        $this->joins = null;
+        $this->orderBy = null;
+        $this->limit = null;
+        $this->offset = null;
+        $this->bindings = [];
+        
+        return $this;
+    }
+
     public function select(array|string $fields): static
     {
         $fieldsArray = is_array($fields) ? $fields : [$fields];
