@@ -8,6 +8,8 @@ use jujelitsa\framework\query\QueryBuilderInterface;
 
 class UniqueRule implements RuleInterface
 {
+    private string $errorContext = '';
+    
     public function __construct(
         private readonly DataBaseConnectionInterface $connection,
         private readonly QueryBuilderInterface $query,
@@ -19,6 +21,7 @@ class UniqueRule implements RuleInterface
         $target = $options['target'] ?? $options['column'] ?? $options['columns'] ?? null;
         
         if ($resource === null) {
+            $this->errorContext = 'Ресурс не указан';
             return false;
         }
         
@@ -29,10 +32,13 @@ class UniqueRule implements RuleInterface
         $this->query->select('COUNT(*)')->from($resource);
         
         $conditions = [];
+        $errorValues = [];
+        
         foreach ($targets as $index => $column) {
             $val = $values[$column] ?? ($values[$index] ?? null);
             if ($val !== null) {
                 $conditions[$column] = $val;
+                $errorValues[] = "{$column}: {$val}";
             }
         }
         
@@ -45,6 +51,7 @@ class UniqueRule implements RuleInterface
         $count = $this->connection->selectScalar($this->query);
         
         if ($count > 0) {
+            $this->errorContext = "Значение (" . implode(', ', $errorValues) . ") уже существует в таблице {$resource}";
             return false;
         }
         
@@ -53,6 +60,6 @@ class UniqueRule implements RuleInterface
     
     public function getErrorMessage(string $value): string
     {
-        return "Значение уже существует";
+        return $this->errorContext !== '' ? $this->errorContext : "Значение уже существует";
     }
 }

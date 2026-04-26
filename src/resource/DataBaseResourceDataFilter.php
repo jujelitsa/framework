@@ -82,11 +82,19 @@ final class DataBaseResourceDataFilter implements ResourceDataFilterInterface
         $query = clone $this->queryBuilder;
         $query->from($this->resourceName);
 
+        $selected = false;
+
         if (isset($condition['fields']) === true) {
             $fields = $this->filterAccessibleFields($condition['fields']);
             if (empty($fields) === false) {
                 $query->select($fields);
+                $selected = true;
             }
+        }
+
+        if ($selected === false && empty($this->accessibleFields) === false) {
+            $query->select($this->accessibleFields);
+            $selected = true;
         }
 
         if (isset($condition['filter']) === true && is_array($condition['filter']) === true) {
