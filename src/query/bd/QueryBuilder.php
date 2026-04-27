@@ -122,10 +122,10 @@ final class QueryBuilder implements QueryBuilderInterface
 
         if ($this->where === null) {
             $this->where = 'WHERE ' . $condition;
-        } else {
-            $this->where .= ' AND ' . $condition;
+            return $this;
         }
 
+        $this->where .= ' AND ' . $condition;
         return $this;
     }
 
