@@ -193,12 +193,12 @@ class JsonDataBaseConnection implements DataBaseConnectionInterface
     private function evaluateOperator(string $operator, mixed $item, mixed $compare): bool
     {
         return match($operator) {
-            OperatorsEnum::EQ->value => $item === $compare,
-            OperatorsEnum::NEQ->value => $item !== $compare,
-            OperatorsEnum::GT->value => $item > $compare,
-            OperatorsEnum::GTE->value => $item >= $compare,
-            OperatorsEnum::LT->value => $item < $compare,
-            OperatorsEnum::LTE->value => $item <= $compare,
+            OperatorsEnum::EQ->value => (string)$item === (string)$compare,
+            OperatorsEnum::NEQ->value => (string)$item !== (string)$compare,
+            OperatorsEnum::GT->value => (string)$item > (string)$compare,
+            OperatorsEnum::GTE->value => (string)$item >= (string)$compare,
+            OperatorsEnum::LT->value => (string)$item < (string)$compare,
+            OperatorsEnum::LTE->value => (string)$item <= (string)$compare,
             OperatorsEnum::IN->value => in_array($item, (array)$compare, true),
             OperatorsEnum::NIN->value => in_array($item, (array)$compare, true) === false,
             OperatorsEnum::LIKE->value => str_contains($item, $compare),

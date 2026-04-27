@@ -8,6 +8,10 @@ class BooleanRule implements RuleInterface
 {
     public function validate(mixed $value, array $options = []): bool
     {
+        if ($value === null) {
+            return true;
+        }
+
         return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) !== null;
     }
 
