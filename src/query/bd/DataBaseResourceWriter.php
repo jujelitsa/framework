@@ -1,6 +1,6 @@
 <?php
 
-namespace jujelitsa\framework\resource;
+namespace jujelitsa\framework\query\bd;
 
 use jujelitsa\framework\resource\ResourceWriterInterface;
 use jujelitsa\framework\connection\DataBaseConnectionInterface;

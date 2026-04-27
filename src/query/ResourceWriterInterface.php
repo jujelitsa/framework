@@ -1,6 +1,6 @@
 <?php
 
-namespace jujelitsa\framework\resource;
+namespace jujelitsa\framework\query;
 
 interface ResourceWriterInterface
 {
