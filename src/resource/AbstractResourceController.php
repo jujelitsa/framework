@@ -2,7 +2,8 @@
 
 namespace jujelitsa\framework\resource;
 
-use jujelitsa\framework\resource\ResourceDataFilterInterface;
+use jujelitsa\framework\query\ResourceDataFilterInterface;
+use jujelitsa\framework\query\ResourceWriterInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use jujelitsa\framework\resource\formRequest\FormRequestFactoryInterface;
 use jujelitsa\framework\resource\enum\ResourceActionTypesEnum;

@@ -1,9 +1,10 @@
 <?php
 
-namespace jujelitsa\framework\resource;
+namespace jujelitsa\framework\query\bd;
 
 use jujelitsa\framework\connection\DataBaseConnectionInterface;
 use jujelitsa\framework\query\QueryBuilderInterface;
+use jujelitsa\framework\query\ResourceDataFilterInterface;
 
 final class DataBaseResourceDataFilter implements ResourceDataFilterInterface
 {

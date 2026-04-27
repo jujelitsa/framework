@@ -5,6 +5,24 @@
 Формат основан на [стандарте формата CHANGELOG](https://keepachangelog.com/en/1.0.0/),
 и придерживается [правил версионирования](https://semver.org/spec/v2.0.0.html).
 
+## [ [0.3.0](https://github.com/jujelitsa/framework/releases/tag/0.3.0) ] - 27.04.2026
+
+- Реализовано:
+  - Объект Resource, который выполняет сборку маршрутизации для ресурса
+  - Метод регистрации ресурса addResource
+  - Интерфес ResourceWriterInterface для работы с состоянием ресурса
+  - Объект для работы с состоянием ресурса базы данных mariadb по контракту ResourceWriterInterface для контроллеров v2
+  - Контракт DataBaseConnectionInterface для работы с базой данных
+  - Объект соединения с базой данных mariadb по контракту DataBaseConnectionInterface для контроллеров v2
+  - Контракт QueryBuilderInterface билдера запросов
+  - Интерфейс FormRequestInterface формы валидации тела запроса
+  - Класс Validate для валидации полей
+  - Правила валидации string, integer, float, boolean, unique
+  - Контракт ResourceDataFilterInterface для получения массива ресурсов в соответсвии с ограничениями фильтрации
+  - Объект создания объекта формы из запроса по контракту FormRequestFactoryInterface
+  - Объект динамической формы FormRequest
+  - Валидация типов данных введенных параметров на уровне HTTPRouterInterface
+
 ## [ [0.2.3](https://github.com/jujelitsa/framework/releases/tag/0.2.3) ] - 12.02.2026
 
 - Изменено:
