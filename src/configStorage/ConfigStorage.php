@@ -11,7 +11,7 @@ final class ConfigStorage implements ConfigStorageInterface
         $this->config = $config;
     }
 
-    public function get(string $key): ?string
+    public function get(string $key): mixed
     {
         if (getenv($key) !== false) {
             return getenv($key);
