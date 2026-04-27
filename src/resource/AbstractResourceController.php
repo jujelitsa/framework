@@ -136,7 +136,7 @@ abstract class AbstractResourceController
         $data = $this->resourceDataFilter->filterAll($queryParams);
 
         if (empty($queryParams['filter']) === false && empty($data) === true) {
-            throw new HttpNotFoundException('Данных не найдены');
+            throw new HttpNotFoundException('Данные не найдены');
         }
         
         $this->eventDispatcher->trigger(ResourceEvent::AFTER_LIST->value, new Message([

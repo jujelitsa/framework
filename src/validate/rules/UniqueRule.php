@@ -29,7 +29,7 @@ class UniqueRule implements RuleInterface
         $targets = is_array($target) === true ? $target : [$target];
         
         $this->query->reset();
-        $this->query->select('COUNT(*)')->from($resource);
+        $this->query->select($options['target'])->from($resource);
         
         $conditions = [];
         $errorValues = [];
