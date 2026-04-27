@@ -48,6 +48,10 @@ final class DataBaseResourceDataFilter implements ResourceDataFilterInterface
         if ($query === null) {
             return [];
         }
+
+        if (empty($condition) === true) {
+            $query->orderBy(['id' => 'ASC']);
+        }
         
         $rows = $this->db->select($query);
         
@@ -169,7 +173,9 @@ final class DataBaseResourceDataFilter implements ResourceDataFilterInterface
                 
                 if (in_array($relation, $expands, true) === true) {
                     $mappedRow['relationships'][$relation][$key] = $value;
-                } else {
+                } 
+
+                if (in_array($relation, $expands, true) === false) {
                     $mappedRow[$fieldName] = $value;
                 }
             }
