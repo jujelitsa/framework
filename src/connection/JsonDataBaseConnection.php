@@ -34,7 +34,7 @@ class JsonDataBaseConnection implements DataBaseConnectionInterface
         $statement = $query->getStatement();
 
         if (count($statement->selectFields) !== 1) {
-            throw new InvalidQueryException('selectColumn() требует ровно одно поле в SELECT');                                  // TO DO
+            throw new InvalidQueryException('selectColumn() требует ровно одно поле в SELECT');
         }
 
         $fieldName = $statement->selectFields[0];
@@ -55,7 +55,7 @@ class JsonDataBaseConnection implements DataBaseConnectionInterface
         return reset($result);
     }
 
-    public function update(string $resource, array $data, array $condition): int //'users', ['field' => 'newData'],  ['conditionField' => 'condition']
+    public function update(string $resource, array $data, array $condition): int
     {
         $filepath = $this->getFilePath($resource);
         $items = $this->loadData($resource);
@@ -72,7 +72,7 @@ class JsonDataBaseConnection implements DataBaseConnectionInterface
         $updatedCount = 0;
 
         foreach ($items as $key => $item) {
-            if ($this->matchesCondition($item, $condition)) {
+            if ($this->matchesCondition($item, $condition) === true) {
                 $items[$key] = array_merge($item, $data);
                 $updatedCount++;
             }
@@ -108,7 +108,7 @@ class JsonDataBaseConnection implements DataBaseConnectionInterface
 
         $maxId = 0;
         foreach ($items as $item) {
-            if (isset($item['id']) && (int)$item['id'] > $maxId) {
+            if (isset($item['id']) === true && (int)$item['id'] > $maxId) {
                 $maxId = (int)$item['id'];
             }
         }
@@ -251,7 +251,7 @@ class JsonDataBaseConnection implements DataBaseConnectionInterface
 
         $data = json_decode($content, true);
 
-        return is_array($data) ? $data : [];
+        return is_array($data) === true ? $data : [];
     }
 
     private function saveData(string $filepath, array $data): void

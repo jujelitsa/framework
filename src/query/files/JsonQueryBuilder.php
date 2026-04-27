@@ -56,7 +56,7 @@ final class JsonQueryBuilder implements QueryBuilderInterface
 
     public function join(string $type, string|array $resource, string $on): static
     {
-        throw new InvalidQueryException('Метод join() пне поддерживается для файлов');
+        throw new InvalidQueryException('Метод join() не поддерживается для файлов');
     }
 
     public function orderBy(array $columns): static
@@ -83,7 +83,7 @@ final class JsonQueryBuilder implements QueryBuilderInterface
     public function getStatement(): StatementParametersInterface
     {
         if ($this->resource === null) {
-            throw new InvalidQueryException('Ресус не задан');
+            throw new InvalidQueryException('Ресурс не задан');
         }
 
         return new StatementParameters(
