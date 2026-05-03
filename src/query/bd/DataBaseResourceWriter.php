@@ -40,7 +40,7 @@ final class DataBaseResourceWriter implements ResourceWriterInterface
         
         $fullData = [];
         foreach ($this->accessibleFields as $column) {
-            if ($column === 'id') {
+            if ($column === 'id' || $column === 'created_at' || $column === 'updated_at') {
                 continue;
             }
             

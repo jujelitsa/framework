@@ -27,24 +27,24 @@ final class QueryBuilder implements QueryBuilderInterface
         $this->limit = null;
         $this->offset = null;
         $this->bindings = [];
-        
+
         return $this;
     }
 
     public function select(array|string $fields): static
     {
         $fieldsArray = is_array($fields) ? $fields : [$fields];
-    
+
         $processedFields = array_map(function($field) {
             if (is_array($field)) {
                 $alias = array_key_first($field);
                 $column = $field[$alias];
                 return $column . ' AS ' . $alias;
             }
-            
+
             return preg_replace('/\s+as\s+/i', ' AS ', $field);
         }, $fieldsArray);
-        
+
         $this->select = 'SELECT ' . implode(', ', $processedFields);
         return $this;
     }
@@ -56,24 +56,24 @@ final class QueryBuilder implements QueryBuilderInterface
             $this->from = "FROM {$resource}";
             return $this;
         }
-        
+
         if (count($resource) === 1) {
             $alias = array_key_first($resource);
             $table = $resource[$alias];
             $this->from = "FROM {$table} AS {$alias}";
             return $this;
         }
-        
+
         $tables = [];
         foreach ($resource as $alias => $table) {
             if (is_int($alias) === true) {
                 $tables[] = $table;
                 continue;
             }
-            
+
             $tables[] = "{$table} AS {$alias}";
         }
-        
+
         $this->from = 'FROM ' . implode(', ', $tables);
         return $this;
     }
@@ -133,12 +133,12 @@ final class QueryBuilder implements QueryBuilderInterface
     {
         $joinTable = $this->buildJoinTable($resource);
         $joinString = strtoupper($type) . " JOIN {$joinTable} ON {$on}";
-        
+
         if ($this->joins === null) {
             $this->joins = $joinString;
             return $this;
         }
-        
+
         $this->joins .= ' ' . $joinString;
         return $this;
     }
@@ -146,11 +146,11 @@ final class QueryBuilder implements QueryBuilderInterface
     public function orderBy(array $columns): static
     {
         $orderParts = [];
-        
+
         foreach ($columns as $column => $direction) {
             $orderParts[] = $column . ' ' . strtoupper($direction);
         }
-        
+
         $this->orderBy = 'ORDER BY ' . implode(', ', $orderParts);
         return $this;
     }
@@ -178,46 +178,48 @@ final class QueryBuilder implements QueryBuilderInterface
             $this->limit,
             $this->offset,
         ];
-        
+
         $sql = implode(' ', array_filter($parts, fn($part) => $part !== null && $part !== ''));
-        
+
         return new StatementParameters($sql, $this->bindings);
     }
 
     private function applyOperator(string $column, string $operator, mixed $value): string
     {
+        $cleanColumn = preg_replace('/[^a-zA-Z_]/', '', str_replace('.', '_', $column));
+
         if ($operator === OperatorsEnum::EQ->value) {
-            $param = $this->bind($column, $value);
+            $param = $this->bind($cleanColumn, $value);
             return "{$column} = {$param}";
         }
 
         if ($operator === OperatorsEnum::NEQ->value) {
-            $param = $this->bind($column, $value);
+            $param = $this->bind($cleanColumn, $value);
             return "{$column} != {$param}";
         }
 
         if ($operator === OperatorsEnum::GT->value) {
-            $param = $this->bind($column, $value);
+            $param = $this->bind($cleanColumn, $value);
             return "{$column} > {$param}";
         }
 
         if ($operator === OperatorsEnum::GTE->value) {
-            $param = $this->bind($column, $value);
+            $param = $this->bind($cleanColumn, $value);
             return "{$column} >= {$param}";
         }
 
         if ($operator === OperatorsEnum::LT->value) {
-            $param = $this->bind($column, $value);
+            $param = $this->bind($cleanColumn, $value);
             return "{$column} < {$param}";
         }
 
         if ($operator === OperatorsEnum::LTE->value) {
-            $param = $this->bind($column, $value);
+            $param = $this->bind($cleanColumn, $value);
             return "{$column} <= {$param}";
         }
 
         if ($operator === OperatorsEnum::LIKE->value) {
-            $param = $this->bind($column, $value);
+            $param = $this->bind($cleanColumn, $value);
             return "{$column} LIKE {$param}";
         }
 
@@ -236,9 +238,9 @@ final class QueryBuilder implements QueryBuilderInterface
 
     private function bind(string $column, mixed $value): string
     {
-        $param = ':' . $column . count($this->bindings);
+        $cleanColumn = preg_replace('/[^a-zA-Z0-9_]/', '_', $column);
+        $param = ':' . $cleanColumn . '_' . count($this->bindings);
         $this->bindings[$param] = $value;
-
         return $param;
     }
 
@@ -247,23 +249,23 @@ final class QueryBuilder implements QueryBuilderInterface
         if (is_string($resource) === true) {
             return preg_replace('/\s+as\s+/i', ' AS ', $resource);
         }
-        
+
         if (count($resource) === 1) {
             $alias = array_key_first($resource);
             $table = $resource[$alias];
             return "{$table} AS {$alias}";
         }
-        
+
         $tables = [];
         foreach ($resource as $alias => $table) {
             if (is_int($alias) === true) {
                 $tables[] = $table;
                 continue;
             }
-            
+
             $tables[] = "{$table} AS {$alias}";
         }
-        
+
         return implode(', ', $tables);
     }
 }
