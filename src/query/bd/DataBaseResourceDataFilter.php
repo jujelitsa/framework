@@ -45,36 +45,36 @@ final class DataBaseResourceDataFilter implements ResourceDataFilterInterface
     public function filterAll(array $condition): array
     {
         $query = $this->buildQuery($condition);
-        
+
         if ($query === null) {
             return [];
         }
 
         if (empty($condition) === true) {
-            $query->orderBy(['id' => 'ASC']);
+            $query->orderBy([$this->resourceName . '.id' => 'ASC']);
         }
-        
+
         $rows = $this->db->select($query);
-        
+
         return $this->mapRelationships($rows, $condition['expand'] ?? []);
     }
 
     public function filterOne(array $condition): array|null
     {
         $query = $this->buildQuery($condition);
-        
+
         if ($query === null) {
             return null;
         }
-        
+
         $row = $this->db->selectOne($query);
-        
+
         if ($row === null) {
             return null;
         }
-        
+
         $result = $this->mapRelationships([$row], $condition['expand'] ?? []);
-        
+
         return $result[0] ?? null;
     }
 
@@ -87,26 +87,14 @@ final class DataBaseResourceDataFilter implements ResourceDataFilterInterface
         $query = clone $this->queryBuilder;
         $query->from($this->resourceName);
 
-        $selected = false;
-
-        if (isset($condition['fields']) === true) {
-            $fields = $this->filterAccessibleFields($condition['fields']);
-            if (empty($fields) === false) {
-                $query->select($fields);
-                $selected = true;
-            }
+        $selectFields = $this->buildSelectFields($condition);
+        if (empty($selectFields) === false) {
+            $query->select($selectFields);
         }
 
-        if ($selected === false && empty($this->accessibleFields) === false) {
-            $query->select($this->accessibleFields);
-            $selected = true;
-        }
-
-        if (isset($condition['filter']) === true && is_array($condition['filter']) === true) {
-            $filter = $this->filterAccessibleFilters($condition['filter']);
-            if (empty($filter) === false) {
-                $query->where($filter);
-            }
+        $whereConditions = $this->buildWhereConditions($condition);
+        if (empty($whereConditions) === false) {
+            $query->where($whereConditions);
         }
 
         if (isset($condition['expand']) === true && is_array($condition['expand']) === true) {
@@ -130,6 +118,116 @@ final class DataBaseResourceDataFilter implements ResourceDataFilterInterface
         return $query;
     }
 
+    private function buildWhereConditions(array $condition): array
+    {
+        $whereConditions = [];
+
+        $hasFilter = isset($condition['filter']) === true && is_array($condition['filter']) === true;
+        if ($hasFilter === false) {
+            return $whereConditions;
+        }
+
+        $filter = $this->filterAccessibleFilters($condition['filter']);
+        if (empty($filter) === true) {
+            return $whereConditions;
+        }
+
+        foreach ($filter as $field => $value) {
+            $cleanField = trim($field);
+            $hasDot = str_contains($cleanField, '.') === true;
+            if ($hasDot === true) {
+                $parts = explode('.', $cleanField);
+                $cleanField = end($parts);
+            }
+            $whereConditions[$this->resourceName . '.' . $cleanField] = $value;
+        }
+
+        return $whereConditions;
+    }
+
+    private function buildSelectFields(array $condition): array
+    {
+        $selectFields = [];
+
+        $hasFields = isset($condition['fields']);
+        if ($hasFields === true) {
+            $fields = $this->filterAccessibleFields($condition['fields']);
+            $selectFields = $this->addFieldsToSelect($fields, $selectFields);
+        }
+
+        $hasNoFields = $hasFields === false;
+        if ($hasNoFields === true && empty($this->accessibleFields) === false) {
+            $selectFields = $this->addFieldsToSelect($this->accessibleFields, $selectFields);
+        }
+
+        $hasExpand = isset($condition['expand']) === true && is_array($condition['expand']) === true;
+        if ($hasExpand === true) {
+            $selectFields = $this->addExpandToSelect($condition['expand'], $selectFields);
+        }
+
+        return $selectFields;
+    }
+
+    private function addFieldsToSelect(array $fields, array $selectFields): array
+    {
+        foreach ($fields as $field) {
+            $selectFields[] = $this->resourceName . '.' . $field;
+        }
+        return $selectFields;
+    }
+
+    private function addExpandToSelect(array $expands, array $selectFields): array
+    {
+        foreach ($expands as $relationName) {
+            if (isset($this->relationships[$relationName]) === false) {
+                continue;
+            }
+
+            $relation = $this->relationships[$relationName];
+            $table = $relation['table'] ?? $relationName;
+            $relationFields = $relation['fields'] ?? ['*'];
+
+            $selectFields = $this->addRelationFieldsToSelect($relationFields, $table, $relationName, $selectFields);
+        }
+
+        return $selectFields;
+    }
+
+    private function addRelationFieldsToSelect(array $relationFields, string $table, string $relationName, array $selectFields): array
+    {
+        foreach ($relationFields as $field) {
+            if ($field === '*') {
+                $selectFields[] = $table . '.*';
+                continue;
+            }
+
+            $cleanField = $this->cleanFieldName($field);
+            $alias = $relationName . '_' . $cleanField;
+            $selectFields[] = $table . '.' . $cleanField . ' AS ' . $alias;
+        }
+
+        return $selectFields;
+    }
+
+    private function cleanFieldName(string $field): string
+    {
+        $cleanField = trim($field);
+
+        $hasAs = stripos($cleanField, ' as ') !== false;
+        if ($hasAs === true) {
+            $parts = preg_split('/\s+as\s+/i', $cleanField);
+            $cleanField = trim($parts[0]);
+        }
+
+        $hasDot = str_contains($cleanField, '.') === true;
+        if ($hasDot === true) {
+            $parts = explode('.', $cleanField);
+            $cleanField = end($parts);
+        }
+
+        return $cleanField;
+    }
+
     private function prepareJoins(QueryBuilderInterface $query, array $expands): void
     {
         foreach ($expands as $relationName) {
@@ -139,19 +237,24 @@ final class DataBaseResourceDataFilter implements ResourceDataFilterInterface
 
             $relation = $this->relationships[$relationName];
             $table = $relation['table'] ?? $relationName;
-            $on = $this->buildJoinCondition($relation);
+            $on = $this->buildJoinCondition($relation, $relationName);
 
             $query->join('LEFT', $table, $on);
         }
     }
 
-    private function buildJoinCondition(array $relation): string
+    private function buildJoinCondition(array $relation, string $relationName): string
     {
         $foreignKey = $relation['foreign_key'] ?? 'id';
         $localKey = $relation['local_key'] ?? 'id';
-        $foreignTable = $relation['table'] ?? $relation['resource'] ?? '';
+        $foreignTable = $relation['table'] ?? $relationName;
+        $type = $relation['type'] ?? 'belongsTo';
 
-        return $this->resourceName . '.' . $localKey . ' = ' . $foreignTable . '.' . $foreignKey;
+        if ($type === 'belongsTo' || $type === 'belongs-to') {
+            return $this->resourceName . '.' . $foreignKey . ' = ' . $foreignTable . '.' . $localKey;
+        }
+
+        return $foreignTable . '.' . $foreignKey . ' = ' . $this->resourceName . '.' . $localKey;
     }
 
     private function mapRelationships(array $rows, array $expands): array
@@ -161,30 +264,87 @@ final class DataBaseResourceDataFilter implements ResourceDataFilterInterface
         }
 
         $result = [];
+
         foreach ($rows as $row) {
-            $mappedRow = [];
-            
-            foreach ($row as $fieldName => $value) {
-                if (str_contains($fieldName, '.') === false) {
-                    $mappedRow[$fieldName] = $value;
-                    continue;
-                }
+            $mappedRow = $this->extractMainFields($row, $expands);
+            $relationships = $this->extractRelationFields($row, $expands);
 
-                [$relation, $key] = explode('.', $fieldName, 2);
-                
-                if (in_array($relation, $expands, true) === true) {
-                    $mappedRow['relationships'][$relation][$key] = $value;
-                } 
-
-                if (in_array($relation, $expands, true) === false) {
-                    $mappedRow[$fieldName] = $value;
-                }
+            foreach ($relationships as $relationName => $relationData) {
+                $mappedRow[$relationName] = $relationData;
             }
-            
+
             $result[] = $mappedRow;
         }
-        
+
         return $result;
+    }
+
+    private function extractMainFields(array $row, array $expands): array
+    {
+        $mappedRow = [];
+
+        foreach ($row as $fieldName => $value) {
+            $isRelationField = $this->isRelationField($fieldName, $expands);
+
+            if ($isRelationField === true) {
+                continue;
+            }
+
+            $cleanFieldName = $fieldName;
+            if (str_contains($fieldName, '.') === true) {
+                $parts = explode('.', $fieldName);
+                $cleanFieldName = end($parts);
+            }
+
+            $mappedRow[$cleanFieldName] = $value;
+        }
+
+        return $mappedRow;
+    }
+
+    private function extractRelationFields(array $row, array $expands): array
+    {
+        $relationships = [];
+
+        foreach ($row as $fieldName => $value) {
+            $relationName = $this->getRelationName($fieldName, $expands);
+
+            if ($relationName === null) {
+                continue;
+            }
+
+            $relatedField = substr($fieldName, strlen($relationName) + 1);
+
+            if (isset($relationships[$relationName]) === false) {
+                $relationships[$relationName] = [];
+            }
+
+            $relationships[$relationName][$relatedField] = $value;
+        }
+
+        return $relationships;
+    }
+
+    private function isRelationField(string $fieldName, array $expands): bool
+    {
+        foreach ($expands as $relationName) {
+            if (str_starts_with($fieldName, $relationName . '_') === true) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function getRelationName(string $fieldName, array $expands): ?string
+    {
+        foreach ($expands as $relationName) {
+            if (str_starts_with($fieldName, $relationName . '_') === true) {
+                return $relationName;
+            }
+        }
+
+        return null;
     }
 
     private function filterAccessibleFields(array $fields): array
@@ -194,11 +354,14 @@ final class DataBaseResourceDataFilter implements ResourceDataFilterInterface
         }
 
         $filtered = [];
+
         foreach ($fields as $field) {
-            $baseField = str_contains($field, '.') === true 
-                ? explode('.', $field, 2)[1] 
-                : $field;
-            
+            $baseField = $field;
+            if (str_contains($field, '.')) {
+                $parts = explode('.', $field, 2);
+                $baseField = $parts[1];
+            }
+
             if (in_array($baseField, $this->accessibleFields, true) === true) {
                 $filtered[] = $field;
             }
@@ -214,13 +377,16 @@ final class DataBaseResourceDataFilter implements ResourceDataFilterInterface
         }
 
         $filtered = [];
+
         foreach ($filter as $field => $criteria) {
-            $baseField = str_contains($field, '.') === true 
-                ? explode('.', $field, 2)[1] 
-                : $field;
-            
-            if (in_array($baseField, $this->accessibleFilters, true) === true) {
-                $filtered[$field] = $criteria;
+            $cleanField = $field;
+            if (str_contains($cleanField, '.')) {
+                $parts = explode('.', $cleanField);
+                $cleanField = end($parts);
+            }
+
+            if (in_array($cleanField, $this->accessibleFilters, true) === true) {
+                $filtered[$cleanField] = $criteria;
             }
         }
 
