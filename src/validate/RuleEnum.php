@@ -10,4 +10,8 @@ enum RuleEnum: string
     case BOOLEAN = 'boolean';
     case REQUIRED = 'required';
     case UNIQUE = 'unique';
+    case MAXLENSTR = 'maxLenStr';
+    case MINLENSTR = 'minLenStr';
+    case REGEX = 'regex';
+    case EMAIL = 'email';
 }
