@@ -36,7 +36,7 @@ final class QueryBuilder implements QueryBuilderInterface
         $fieldsArray = is_array($fields) ? $fields : [$fields];
 
         $processedFields = array_map(function($field) {
-            if (is_array($field)) {
+            if (is_array($field) === true) {
                 $alias = array_key_first($field);
                 $column = $field[$alias];
                 return $column . ' AS ' . $alias;
@@ -78,68 +78,117 @@ final class QueryBuilder implements QueryBuilderInterface
         return $this;
     }
 
-    public function where(array $condition): static
+    public function where(array $condition, int $level = 0): static
     {
-        $whereConditions = [];
+        if ($level > 1) {
+            throw new \InvalidArgumentException(
+                'Max where nesting level is 2'
+            );
+        }
+
+        if (
+            isset($condition[0]) === true
+            && is_string($condition[0]) === true
+        ) {
+            $logic = strtoupper($condition[0]);
+
+            array_shift($condition);
+
+            $parts = [];
+
+            foreach ($condition as $item) {
+
+                if (is_array($item) === false) {
+                    continue;
+                }
+
+                $builder = new self();
+
+                $builder->bindings = &$this->bindings;
+
+                $builder->where(
+                    $item,
+                    $level + 1
+                );
+
+                $sql = $builder->getWhereExpression();
+
+                if ($sql !== '') {
+                    $parts[] = $sql;
+                }
+            }
+
+            if ($parts !== []) {
+
+                $expression =
+                    '(' .
+                    implode(" {$logic} ", $parts) .
+                    ')';
+
+                $this->appendWhere($expression);
+            }
+
+            return $this;
+        }
+
+        $parts = [];
+
         foreach ($condition as $column => $value) {
 
             if (is_array($value) === false) {
-                $whereConditions[] = $this->applyOperator($column, OperatorsEnum::EQ->value, $value);
+                $parts[] = $this->applyOperator($column, OperatorsEnum::EQ->value, $value);
                 continue;
             }
 
             foreach ($value as $operator => $val) {
-                $whereConditions[] = $this->applyOperator($column, $operator, $val);
+                $expression = $this->applyOperator(
+                    $column,
+                    $operator,
+                    $val
+                );
+
+                if ($expression !== '') {
+                    $parts[] = $expression;
+                }
             }
         }
 
-        if (empty($whereConditions) === false) {
-            $this->where = 'WHERE ' . implode(' AND ', $whereConditions);
+        if ($parts !== []) {
+            $this->appendWhere(
+                implode(' AND ', $parts)
+            );
         }
 
         return $this;
     }
 
-    public function whereIn(string $column, array $values, bool $not = false): static
+    private function appendWhere(string $expression): void
     {
-        $placeholders = [];
-
-        foreach ($values as $i => $value) {
-            $param = ':' . $column . '_in_' . $i . '_' . count($this->bindings);
-
-            $placeholders[] = $param;
-            $this->bindings[$param] = $value;
-        }
-
-        $operator = $not ? 'NOT IN' : 'IN';
-
-        $condition = sprintf(
-            '%s %s (%s)',
-            $column,
-            $operator,
-            implode(', ', $placeholders)
-        );
-
         if ($this->where === null) {
-            $this->where = 'WHERE ' . $condition;
-            return $this;
+            $this->where = 'WHERE ' . $expression;
+            return;
         }
 
-        $this->where .= ' AND ' . $condition;
-        return $this;
+        $this->where .= ' AND ' . $expression;
     }
 
-    public function join(string $type, string|array $resource, string $on): static
-    {
-        $joinTable = $this->buildJoinTable($resource);
-        $joinString = strtoupper($type) . " JOIN {$joinTable} ON {$on}";
+    public function join(string $type,
+        string|array $resource,
+        string $on
+    ): static {
+        $join =
+            strtoupper($type)
+            . ' JOIN '
+            . $this->buildJoinTable($resource)
+            . ' ON '
+            . $on;
 
         if ($this->joins === null) {
-            $this->joins = $joinString;
+            $this->joins = $join;
             return $this;
         }
 
-        $this->joins .= ' ' . $joinString;
+        $this->joins .= ' ' . $join;
         return $this;
     }
 
@@ -224,16 +273,51 @@ final class QueryBuilder implements QueryBuilderInterface
         }
 
         if ($operator === OperatorsEnum::IN->value) {
-            $this->whereIn($column, (array)$value);
-            return '';
+            return $this->in($column, (array) $value, false);
         }
 
         if ($operator === OperatorsEnum::NIN->value) {
-            $this->whereIn($column, (array)$value, true);
-            return '';
+            return $this->in($column, (array) $value, true);
         }
 
-        throw new \InvalidArgumentException("Неизвестный оператор {$operator}");
+        throw new \InvalidArgumentException(
+            "Неизвестный оператор {$operator}"
+        );
+    }
+
+    private function in(
+        string $column,
+        array $values,
+        bool $not
+    ): string {
+        if ($values === []) {
+            return $not === true
+                ? '1 = 1'
+                : '1 = 0';
+        }
+
+        $cleanColumn = preg_replace(
+            '/[^a-zA-Z0-9_]/',
+            '_',
+            $column
+        );
+
+        $placeholders = [];
+
+        foreach ($values as $i => $value) {
+            $param =':' . $cleanColumn . '_' . $i . '_' . count($this->bindings);
+
+            $this->bindings[$param] = $value;
+
+            $placeholders[] = $param;
+        }
+
+        return sprintf(
+            '%s %s (%s)',
+            $column,
+            $not === true ? 'NOT IN' : 'IN',
+            implode(', ', $placeholders)
+        );
     }
 
     private function bind(string $column, mixed $value): string
@@ -267,5 +351,23 @@ final class QueryBuilder implements QueryBuilderInterface
         }
 
         return implode(', ', $tables);
+    }
+
+    private function getWhereExpression(): string
+    {
+        if ($this->where === null) {
+            return '';
+        }
+
+        return preg_replace(
+            '/^WHERE\s+/i',
+            '',
+            $this->where
+        );
+    }
+
+    public function getRawWhere(): string
+    {
+        return $this->where ?? '';
     }
 }

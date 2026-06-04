@@ -7,10 +7,15 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use jujelitsa\framework\http\Exception\HttpUnauthorizedException;
 use jujelitsa\framework\http\token\TokenValidator;
+use jujelitsa\framework\resource\interface\UserRepositoryInterface;
+use Ramsey\Uuid\Uuid;
 
 class BearerAuthMiddleware implements MiddlewareInterface
 {
-    public function __construct(private TokenValidator $tokenValidator) {}
+    public function __construct(
+        private TokenValidator $tokenValidator,
+        private UserRepositoryInterface $userRepository
+    ) {}
 
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next): void
     {
@@ -27,8 +32,22 @@ class BearerAuthMiddleware implements MiddlewareInterface
 
         try {
             $payload = $this->tokenValidator->validate($token);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw new HttpUnauthorizedException('Invalid or expired token');
+        }
+
+        if (isset($payload['exp']) === false || $payload['exp'] <= time()) {
+            throw new HttpUnauthorizedException('Token has expired');
+        }
+
+        if (isset($payload['sub']) === false || empty($payload['sub']) || Uuid::isValid($payload['sub']) === false) {
+            throw new HttpUnauthorizedException('Invalid token: missing user identifier');
+        }
+        
+        $user = $this->userRepository->findByUuid($payload['sub']);
+        
+        if ($user === null) {
+            throw new HttpUnauthorizedException('User not found');
         }
 
         $hasSubject = isset($payload['sub']) === true;
