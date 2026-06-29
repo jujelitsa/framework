@@ -236,7 +236,21 @@ abstract class AbstractResourceController
         $this->checkCallAvailability(ResourceActionTypesEnum::UPDATE);
 
         $resourceName = $this->getResourceName();
-        $this->logger->info("Обновление ресурса {$resourceName} начато", ['id' => $id]);
+        $this->logger->info("Обновление ресурса {$resourceName} начато");
+
+        $existing = $this->resourceDataFilter->filterOne([
+            'filter' => ['id' => $id],
+        ]);
+
+        if ($existing === null) {
+            $this->logger->warning("Ресурс {$resourceName} не найден");
+            $this->eventDispatcher->trigger(ResourceEvent::NOT_FOUND->value, new Message([
+                'resource' => $resourceName,
+                'id' => $id,
+                'action' => 'update',
+            ]));
+            throw new HttpNotFoundException();
+        }
 
         $form = $this->buildForm(ResourceActionTypesEnum::UPDATE->value);
 
@@ -260,26 +274,11 @@ abstract class AbstractResourceController
         try {
             $rowsCount = $this->resourceWriter->update($id, $form->getValues());
         } catch (\InvalidArgumentException $exception) {
-            $this->logger->error("Ошибка при обновлении ресурса {$resourceName}", [
-                'id' => $id,
-                'error' => $exception->getMessage(),
-            ]);
+            $this->logger->error("Ошибка при обновлении ресурса {$resourceName}");
             throw new HttpBadRequestException($exception->getMessage());
         }
 
-        if ($rowsCount === 0) {
-            $this->logger->warning("Ресурс {$resourceName} для обновления не найден", ['id' => $id]);
-            
-            $this->eventDispatcher->trigger(ResourceEvent::NOT_FOUND->value, new Message([
-                'resource' => $resourceName,
-                'id' => $id,
-                'action' => 'update',
-            ]));
-            
-            throw new HttpNotFoundException();
-        }
-
-        $this->logger->info("Ресурс {$resourceName} обновлен", ['id' => $id]);
+        $this->logger->info("Ресурс {$resourceName} обновлен");
         
         $this->eventDispatcher->trigger(ResourceEvent::AFTER_UPDATE->value, new Message([
             'resource' => $resourceName,
@@ -295,8 +294,22 @@ abstract class AbstractResourceController
         $this->checkCallAvailability(ResourceActionTypesEnum::PATCH);
         
         $resourceName = $this->getResourceName();
-        $this->logger->info("Частичное обновление ресурса {$resourceName} начато", ['id' => $id]);
-        
+        $this->logger->info("Частичное обновление ресурса {$resourceName} начато");
+
+        $existing = $this->resourceDataFilter->filterOne([
+            'filter' => ['id' => $id],
+        ]);
+
+        if ($existing === null) {
+            $this->logger->warning("Ресурс {$resourceName} не найден");
+            $this->eventDispatcher->trigger(ResourceEvent::NOT_FOUND->value, new Message([
+                'resource' => $resourceName,
+                'id' => $id,
+                'action' => 'update',
+            ]));
+            throw new HttpNotFoundException();
+        }
+
         $form = $this->buildForm(ResourceActionTypesEnum::PATCH->value);
         $form->setSkipEmptyValues();
 
@@ -327,19 +340,7 @@ abstract class AbstractResourceController
             throw new HttpBadRequestException($exception->getMessage());
         }
 
-        if ($rowsCount === 0) {
-            $this->logger->warning("Ресурс {$resourceName} для частичного обновления не найден", ['id' => $id]);
-            
-            $this->eventDispatcher->trigger(ResourceEvent::NOT_FOUND->value, new Message([
-                'resource' => $resourceName,
-                'id' => $id,
-                'action' => 'patch',
-            ]));
-            
-            throw new HttpNotFoundException();
-        }
-
-        $this->logger->info("Ресурс {$resourceName} частично обновлен", ['id' => $id]);
+        $this->logger->info("Ресурс {$resourceName} частично обновлен");
         
         $this->eventDispatcher->trigger(ResourceEvent::AFTER_PATCH->value, new Message([
             'resource' => $resourceName,
@@ -361,20 +362,17 @@ abstract class AbstractResourceController
             'id' => $id,
         ]));
 
-        $this->logger->info("Удаление ресурса {$resourceName} начато", ['id' => $id]);
+        $this->logger->info("Удаление ресурса {$resourceName} начато");
         
         try {
             $rowsCount = $this->resourceWriter->delete($id);
         } catch (\InvalidArgumentException $exception) {
-            $this->logger->error("Ошибка при удалении ресурса {$resourceName}", [
-                'id' => $id,
-                'error' => $exception->getMessage(),
-            ]);
+            $this->logger->error("Ошибка при удалении ресурса {$resourceName}");
             throw new HttpBadRequestException($exception->getMessage());
         }
 
         if ($rowsCount === 0) {
-            $this->logger->warning("Ресурс {$resourceName} для удаления не найден", ['id' => $id]);
+            $this->logger->warning("Ресурс {$resourceName} для удаления не найден");
             
             $this->eventDispatcher->trigger(ResourceEvent::NOT_FOUND->value, new Message([
                 'resource' => $resourceName,
@@ -385,7 +383,7 @@ abstract class AbstractResourceController
             throw new HttpNotFoundException();
         }
 
-        $this->logger->info("Ресурс {$resourceName} удален", ['id' => $id]);
+        $this->logger->info("Ресурс {$resourceName} удален");
         
         $this->eventDispatcher->trigger(ResourceEvent::AFTER_DELETE->value, new Message([
             'resource' => $resourceName,
