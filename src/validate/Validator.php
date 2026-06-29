@@ -4,6 +4,7 @@ namespace jujelitsa\framework\validate;
 
 use jujelitsa\framework\container\ContainerInterface;
 use jujelitsa\framework\validate\rules\EmailRule;
+use jujelitsa\framework\validate\rules\ExistsRule;
 use jujelitsa\framework\validate\rules\MaxLenStrRule;
 use jujelitsa\framework\validate\rules\MinLenStrRule;
 use jujelitsa\framework\validate\rules\RegexRule;
@@ -36,6 +37,7 @@ class Validator
             RuleEnum::MINLENSTR->value => MinLenStrRule::class,
             RuleEnum::REGEX->value => RegexRule::class,
             RuleEnum::EMAIL->value => EmailRule::class,
+            RuleEnum::EXISTS->value => ExistsRule::class,
         ];
 
         $this->rules = array_merge($defaultRules, $customRules);
