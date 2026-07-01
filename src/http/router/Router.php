@@ -205,7 +205,7 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
      * [700, 900]
      * @throws HttpBadRequestException если в строке запроса не передан параметр объявленный как обязательный
      */
-    private function mapParams(array $queryParams, array $params): array
+    private function mapParams(array $queryParams, array $params, ServerRequestInterface $request): array
     {
         $values = [];
 
@@ -299,14 +299,19 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
             throw new HttpNotFoundException("Маршрут не найден: {$method} {$path}");
         }
 
+        foreach ($pathParams as $name => $value) {
+            $request = $request->withAttribute($name, $value);
+        }
+
         $response = $this->container->get(ResponseInterface::class);
+
         $middlewares = array_merge($this->middlewares, $route->getMiddlewares());
         $this->runMiddlewares($middlewares, $request, $response);
 
         $queryParams = $request->getQueryParams();
         $allParams = array_merge($queryParams, $pathParams);
 
-        $params = $this->mapParams($allParams, $route->params);
+        $params = $this->mapParams($allParams, $route->params, $request);
         $handler = $route->getHandler();
 
         $result = null;
@@ -339,20 +344,27 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
 
     private function runMiddlewares(array $middlewares, ServerRequestInterface $request, ResponseInterface $response): void
     {
-        $next = function (): void {};
-
-        foreach (array_reverse($middlewares) as $middleware) {
-            $next = function () use ($middleware, $request, $response, $next): void {
-                if (is_callable($middleware) === true) {
-                    $middleware($request, $response, $next);
-                    return;
-                }
-
-                $this->container->get($middleware)->__invoke($request, $response, $next);
-            };
-        }
-
-        $next();
+        $next = function (ServerRequestInterface $req, ResponseInterface $res) use (&$middlewares, &$next) {
+            if (empty($middlewares) === true) {
+                return;
+            }
+            
+            $middleware = array_shift($middlewares);
+            
+            if (is_callable($middleware) === true) {
+                $middleware($req, $res, function (ServerRequestInterface $newReq, ResponseInterface $newRes) use ($next) {
+                    $next($newReq, $newRes);
+                });
+                return;
+            }
+            
+            $instance = $this->container->get($middleware);
+            $instance->__invoke($req, $res, function (ServerRequestInterface $newReq, ResponseInterface $newRes) use ($next) {
+                $next($newReq, $newRes);
+            });
+        };
+        
+        $next($request, $response);
     }
 
     public function addMiddleware(callable|string $middleware): MiddlewareAssignable
