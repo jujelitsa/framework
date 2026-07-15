@@ -53,7 +53,7 @@ class BearerAuthMiddleware implements MiddlewareInterface
         $hasSubject = isset($payload['sub']) === true;
 
         if ($hasSubject === true) {
-            $request = $request->withAttribute('subject', $payload['sub']);
+            $request = $request->setAttribute('subject', $payload['sub']);
         }
 
         $next($request, $response);

@@ -15,4 +15,5 @@ enum RuleEnum: string
     case REGEX = 'regex';
     case EMAIL = 'email';
     case EXISTS = 'exists';
+    case DATETIME = 'datetime';
 }

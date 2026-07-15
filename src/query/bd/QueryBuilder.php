@@ -86,26 +86,18 @@ final class QueryBuilder implements QueryBuilderInterface
             );
         }
 
-        if (
-            isset($condition[0]) === true
-            && is_string($condition[0]) === true
-        ) {
+        if (isset($condition[0]) === true && is_string($condition[0]) === true) {
             $logic = strtoupper($condition[0]);
-
             array_shift($condition);
-
             $parts = [];
 
             foreach ($condition as $item) {
-
                 if (is_array($item) === false) {
                     continue;
                 }
 
                 $builder = new self();
-
                 $builder->bindings = &$this->bindings;
-
                 $builder->where(
                     $item,
                     $level + 1
@@ -118,13 +110,8 @@ final class QueryBuilder implements QueryBuilderInterface
                 }
             }
 
-            if ($parts !== []) {
-
-                $expression =
-                    '(' .
-                    implode(" {$logic} ", $parts) .
-                    ')';
-
+            if (empty($parts) === false) {
+                $expression ='(' . implode(" {$logic} ", $parts) . ')';
                 $this->appendWhere($expression);
             }
 
@@ -153,7 +140,7 @@ final class QueryBuilder implements QueryBuilderInterface
             }
         }
 
-        if ($parts !== []) {
+        if (empty($parts) === false) {
             $this->appendWhere(
                 implode(' AND ', $parts)
             );

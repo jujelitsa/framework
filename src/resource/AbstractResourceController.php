@@ -187,7 +187,7 @@ abstract class AbstractResourceController
         return new JsonResponse($data);
     }
 
-    public function actionCreate(): CreateResponse
+    public function actionCreate(): CreateResponse | JsonResponse
     {
         $this->checkCallAvailability(ResourceActionTypesEnum::CREATE);
 
@@ -208,7 +208,11 @@ abstract class AbstractResourceController
                 'resource' => $resourceName,
                 'errors' => $form->getErrors(),
             ]));    
-            throw new HttpBadRequestException(json_encode($form->getErrors(), JSON_UNESCAPED_UNICODE));
+            
+            return new JsonResponse([
+                'cause' => json_encode($form->getErrors(), JSON_UNESCAPED_UNICODE),
+                'type' => 'BadRequest'
+            ], 400);
         }
 
         try {
@@ -227,11 +231,14 @@ abstract class AbstractResourceController
             $this->logger->error("Ошибка при создании ресурса {$resourceName}", [
                 'error' => $exception->getMessage(),
             ]);
-            throw new HttpBadRequestException($exception->getMessage());
+            return new JsonResponse([
+                'cause' => json_encode($form->getErrors(), JSON_UNESCAPED_UNICODE),
+                'type' => 'BadRequest'
+            ], 400);
         }
     }
 
-    public function actionUpdate(string|int $id): UpdateResponse
+    public function actionUpdate(string|int $id): UpdateResponse | JsonResponse
     {
         $this->checkCallAvailability(ResourceActionTypesEnum::UPDATE);
 
@@ -268,14 +275,22 @@ abstract class AbstractResourceController
                 'id' => $id,
                 'errors' => $form->getErrors(),
             ]));
-            throw new HttpBadRequestException(json_encode($form->getErrors(), JSON_UNESCAPED_UNICODE));
+            
+            return new JsonResponse([
+                'cause' => json_encode($form->getErrors(), JSON_UNESCAPED_UNICODE),
+                'type' => 'BadRequest'
+            ], 400);
         }
 
         try {
             $rowsCount = $this->resourceWriter->update($id, $form->getValues());
         } catch (\InvalidArgumentException $exception) {
             $this->logger->error("Ошибка при обновлении ресурса {$resourceName}");
-            throw new HttpBadRequestException($exception->getMessage());
+            
+            return new JsonResponse([
+                'cause' => json_encode($form->getErrors(), JSON_UNESCAPED_UNICODE),
+                'type' => 'BadRequest'
+            ], 400);
         }
 
         $this->logger->info("Ресурс {$resourceName} обновлен");
