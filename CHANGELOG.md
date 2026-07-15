@@ -10,8 +10,13 @@
   - Правило валидации email адреса
   - Правила валидации на максимальную и минимальную длинны строки
   - UserRepositoryInterface с методом для поиска пользователя в бд
+  - Правило Exist
+  - Правило datetime
+  - Добавлен метод setAttribute в ServerRequest
 - Изменено:
   - Добавлена возможность обработки or/and в условии where в QueryBuilder
+- Исправлено:
+  - Проверка существования записи при изменении
 
 ## [ [0.3.1](https://github.com/jujelitsa/framework/releases/tag/0.3.1) ] - 04.05.2026
 
