@@ -14,4 +14,5 @@ enum RuleEnum: string
     case MINLENSTR = 'minLenStr';
     case REGEX = 'regex';
     case EMAIL = 'email';
+    case DATETIME = 'datetime';
 }

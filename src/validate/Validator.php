@@ -13,18 +13,19 @@ use jujelitsa\framework\validate\rules\IntegerRule;
 use jujelitsa\framework\validate\rules\FloatRule;
 use jujelitsa\framework\validate\rules\StringRule;
 use jujelitsa\framework\validate\rules\BooleanRule;
+use jujelitsa\framework\validate\rules\DateTimeRule;
 use jujelitsa\framework\validate\rules\RequiredRule;
 use jujelitsa\framework\validate\rules\UniqueRule;
 
 class Validator
 {
     private array $rules = [];
-    private ?ContainerInterface $container = null;
 
-    public function __construct(array $customRules = [], ?ContainerInterface $container = null)
+    public function __construct(
+        private readonly ContainerInterface $container,
+        array $customRules = [],
+    )
     {
-        $this->container = $container;
-
         $defaultRules = [
             RuleEnum::INTEGER->value => IntegerRule::class,
             RuleEnum::FLOAT->value => FloatRule::class,
@@ -36,6 +37,7 @@ class Validator
             RuleEnum::MINLENSTR->value => MinLenStrRule::class,
             RuleEnum::REGEX->value => RegexRule::class,
             RuleEnum::EMAIL->value => EmailRule::class,
+            RuleEnum::DATETIME->value => DateTimeRule::class,
         ];
 
         $this->rules = array_merge($defaultRules, $customRules);
@@ -55,6 +57,7 @@ class Validator
             $ruleName = $rule[0] ?? throw new ValidateException('Правило валидации не указано');
             $options = array_slice($rule, 1, null, true);
         }
+
         if (is_array($rule) === false) {
             $ruleName = $rule;
         }
