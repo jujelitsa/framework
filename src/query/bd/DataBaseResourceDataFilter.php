@@ -120,36 +120,61 @@ final class DataBaseResourceDataFilter implements ResourceDataFilterInterface
 
     private function buildWhereConditions(array $condition): array
     {
-        $whereConditions = [];
-
-        $hasFilter = isset($condition['filter']) === true && is_array($condition['filter']) === true;
-        if ($hasFilter === false) {
-            return $whereConditions;
+        if (isset($condition['filter']) === false || is_array($condition['filter']) === false) {
+            return [];
         }
 
-        $filter = $this->filterAccessibleFilters($condition['filter']);
-        if (empty($filter) === true) {
-            return $whereConditions;
-        }
+        return $this->prepareFilter(
+            $condition['filter']
+        );
+    }
+
+    private function prepareFilter(array $filter): array
+    {
+        $result = [];
 
         foreach ($filter as $field => $value) {
-            $cleanField = trim($field);
-            $hasDot = str_contains($cleanField, '.') === true;
-            if ($hasDot === true) {
+
+            if ($field === '$or') {
+                $items = [];
+
+                foreach ($value as $subField => $subValue) {
+
+                    $items[] = [
+                        $this->resourceName . '.' . $subField => $subValue
+                    ];
+                }
+
+                $result = ['OR'];
+                foreach ($items as $item) {
+                    $result[] = $item;
+                }
+
+                continue;
+            }
+
+            $cleanField = $field;
+
+            if (str_contains($cleanField, '.') === true) {
                 $parts = explode('.', $cleanField);
                 $cleanField = end($parts);
             }
-            $whereConditions[$this->resourceName . '.' . $cleanField] = $value;
+
+            if (empty($this->accessibleFilters) === false && in_array($cleanField, $this->accessibleFilters, true) === false) {
+                continue;
+            }
+
+            $result[$this->resourceName . '.' . $cleanField] = $value;
         }
 
-        return $whereConditions;
+        return $result;
     }
 
     private function buildSelectFields(array $condition): array
     {
         $selectFields = [];
 
-        $hasFields = isset($condition['fields']);
+        $hasFields = isset($condition['fields']) === true;
         if ($hasFields === true) {
             $fields = $this->filterAccessibleFields($condition['fields']);
             $selectFields = $this->addFieldsToSelect($fields, $selectFields);
