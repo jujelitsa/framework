@@ -48,9 +48,9 @@ class UniqueRule implements RuleInterface
         
         $this->query->where($conditions);
         
-        $count = $this->connection->selectScalar($this->query);
-        
-        if ($count > 0) {
+       $exists = $this->connection->selectScalar($this->query);
+
+        if ($exists !== false) {
             $this->errorContext = "Значение (" . implode(', ', $errorValues) . ") уже существует в таблице {$resource}";
             return false;
         }
