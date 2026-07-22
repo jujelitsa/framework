@@ -344,6 +344,8 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
 
     private function runMiddlewares(array $middlewares, ServerRequestInterface $request, ResponseInterface $response): void
     {
+        $middlewares = array_reverse($middlewares);
+
         $next = function (ServerRequestInterface $req, ResponseInterface $res) use (&$middlewares, &$next) {
             if (empty($middlewares) === true) {
                 return;
