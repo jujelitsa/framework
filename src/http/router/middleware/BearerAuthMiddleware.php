@@ -40,7 +40,7 @@ class BearerAuthMiddleware implements MiddlewareInterface
             throw new HttpUnauthorizedException('Token has expired');
         }
 
-        if (isset($payload['sub']) === false || empty($payload['sub']) || Uuid::isValid($payload['sub']) === false) {
+        if (isset($payload['sub']) === false || empty($payload['sub']) === true || Uuid::isValid($payload['sub']) === false) {
             throw new HttpUnauthorizedException('Invalid token: missing user identifier');
         }
         
