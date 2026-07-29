@@ -346,7 +346,7 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
     {
         $middlewares = array_reverse($middlewares);
 
-        $next = function (ServerRequestInterface $req, ResponseInterface $res) use (&$middlewares, &$next) {
+        $next = function (ServerRequestInterface $req, ResponseInterface $res) use (&$middlewares, &$next): void {
             if (empty($middlewares) === true) {
                 return;
             }
@@ -354,14 +354,14 @@ class Router implements HTTPRouterInterface, MiddlewareAssignable
             $middleware = array_shift($middlewares);
             
             if (is_callable($middleware) === true) {
-                $middleware($req, $res, function (ServerRequestInterface $newReq, ResponseInterface $newRes) use ($next) {
+                $middleware($req, $res, function (ServerRequestInterface $newReq, ResponseInterface $newRes) use ($next): void {
                     $next($newReq, $newRes);
                 });
                 return;
             }
             
             $instance = $this->container->get($middleware);
-            $instance->__invoke($req, $res, function (ServerRequestInterface $newReq, ResponseInterface $newRes) use ($next) {
+            $instance->__invoke($req, $res, function (ServerRequestInterface $newReq, ResponseInterface $newRes) use ($next): void {
                 $next($newReq, $newRes);
             });
         };
