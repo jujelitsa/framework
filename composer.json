@@ -15,7 +15,8 @@
     "php": "^8.2",
     "psr/http-message": "^2.0",
     "psr/container": "^2.0",
-    "psr/http-factory": "^1.1"
+    "psr/http-factory": "^1.1",
+    "ramsey/uuid": "^4.9"
   },
   "require-dev": {
     "codeception/codeception": "^5.1",

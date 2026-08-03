@@ -160,4 +160,10 @@ class ServerRequest extends Message implements ServerRequestInterface
         unset($new->attributes[$name]);
         return $new;
     }
+
+    public function setAttribute(string $name, mixed $value): self
+    {
+        $this->attributes[$name] = $value;
+        return $this;
+    }
 }
