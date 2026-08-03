@@ -5,7 +5,7 @@ namespace jujelitsa\framework\validate\rules;
 use DateTime;
 use jujelitsa\framework\validate\RuleInterface;
 
-class DateTimeRule implements RuleInterface
+final class DateTimeRule implements RuleInterface
 {
     public function validate(mixed $value, array $options = []): bool
     {

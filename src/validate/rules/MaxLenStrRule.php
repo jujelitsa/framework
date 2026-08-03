@@ -4,7 +4,7 @@ namespace jujelitsa\framework\validate\rules;
 
 use jujelitsa\framework\validate\RuleInterface;
 
-class MaxLenStrRule implements RuleInterface
+final class MaxLenStrRule implements RuleInterface
 {
     private string $errorContext = '';
 

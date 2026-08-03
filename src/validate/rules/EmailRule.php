@@ -4,7 +4,7 @@ namespace jujelitsa\framework\validate\rules;
 
 use jujelitsa\framework\validate\RuleInterface;
 
-class EmailRule implements RuleInterface
+final class EmailRule implements RuleInterface
 {
     public function validate(mixed $value, array $options = []): bool
     {
