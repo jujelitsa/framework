@@ -107,4 +107,9 @@ final class JsonQueryBuilder implements QueryBuilderInterface
 
         return $this;
     }
+
+    public function getRawWhere(): string
+    {
+        throw new InvalidQueryException('Метод getRawWhere() не поддерживается для файлов');
+    }
 }

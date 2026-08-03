@@ -23,4 +23,6 @@ interface QueryBuilderInterface
     public function reset(): static;
 
     public function getStatement(): StatementParametersInterface;
+
+    public function getRawWhere(): string;
 }

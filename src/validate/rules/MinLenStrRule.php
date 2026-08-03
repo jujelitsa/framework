@@ -4,7 +4,7 @@ namespace jujelitsa\framework\validate\rules;
 
 use jujelitsa\framework\validate\RuleInterface;
 
-class MinLenStrRule implements RuleInterface
+final class MinLenStrRule implements RuleInterface
 {
     private string $errorContext = '';
 

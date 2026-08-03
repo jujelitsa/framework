@@ -6,7 +6,7 @@ use jujelitsa\framework\validate\RuleInterface;
 use jujelitsa\framework\connection\DataBaseConnectionInterface;
 use jujelitsa\framework\query\QueryBuilderInterface;
 
-class ExistsRule implements RuleInterface
+final class ExistsRule implements RuleInterface
 {
     private string $errorContext = '';
 

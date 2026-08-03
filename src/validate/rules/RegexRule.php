@@ -4,7 +4,7 @@ namespace jujelitsa\framework\validate\rules;
 
 use jujelitsa\framework\validate\RuleInterface;
 
-class RegexRule implements RuleInterface
+final class RegexRule implements RuleInterface
 {
     public function validate(mixed $value, array $options = []): bool
     {
