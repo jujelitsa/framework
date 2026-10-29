@@ -77,7 +77,7 @@ abstract class AbstractResourceController
      * @return array
      */
     abstract protected function getAccessibleFields(): array;
-    
+
     /**
      * Возврат имен свойств ресурса, доступных к фильтрации
      * Пример запроса:
@@ -97,10 +97,10 @@ abstract class AbstractResourceController
             throw new HttpForbiddenException("Вызов метода {$actionType->value} запрещен");
         }
     }
-    
+
     /**
      * Возврат ресурсов, по ограничениям указанным в строке запроса
-     * 
+     *
      * Пример запроса:
      * ?fields[]=id&fields[]=order_id&fields[]=name&filter[order_id][$eq]=3
      * Пример ответа:
@@ -127,28 +127,28 @@ abstract class AbstractResourceController
         $resourceName = $this->getResourceName();
         $queryParams = $this->request->getQueryParams();
 
-        $this->eventDispatcher->trigger(ResourceEvent::BEFORE_LIST->value, new Message([
+        $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::BEFORE_LIST->value, new Message([
             'resource' => $resourceName,
             'query' => $queryParams,
         ]));
-        
+
         $this->logger->info("Список ресурсов {$resourceName} запрошен");
 
         $data = $this->resourceDataFilter->filterAll($queryParams);
-  
-        $this->eventDispatcher->trigger(ResourceEvent::AFTER_LIST->value, new Message([
+
+        $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::AFTER_LIST->value, new Message([
             'resource' => $resourceName,
             'count' => count($data),
             'query' => $queryParams,
             'data' => $data,
         ]));
-        
+
         return new JsonResponse($data);
     }
 
     /**
      * Возврат ресурса, по ограничениям указанным в строке запроса
-     * 
+     *
      * Пример запроса:
      * ?fields[]=id&fields[]=name&filter[id][$eq]=1
      * Пример ответа:
@@ -166,24 +166,24 @@ abstract class AbstractResourceController
         $resourceName = $this->getResourceName();
         $queryParams = $this->request->getQueryParams();
         $queryParams['filter']['id'] = ['$eq' => $id];
-        
-        $this->eventDispatcher->trigger(ResourceEvent::BEFORE_VIEW->value, new Message([
+
+        $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::BEFORE_VIEW->value, new Message([
             'resource' => $resourceName,
             'id' => $id,
             'query' => $queryParams,
         ]));
-        
-        $this->logger->info("Просмотр ресурса {$resourceName} запрошен", ['id' => $id]);
+
+        $this->logger->info("Просмотр ресурса {$resourceName} запрошен");
 
         $data = $this->resourceDataFilter->filterOne($queryParams);
-        
-        $this->eventDispatcher->trigger(ResourceEvent::AFTER_VIEW->value, new Message([
+
+        $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::AFTER_VIEW->value, new Message([
             'resource' => $resourceName,
             'id' => $id,
             'found' => $data !== null,
             'data' => $data,
         ]));
-        
+
         return new JsonResponse($data);
     }
 
@@ -196,44 +196,44 @@ abstract class AbstractResourceController
 
         $form = $this->buildForm(ResourceActionTypesEnum::CREATE->value);
 
-        $this->eventDispatcher->trigger(ResourceEvent::BEFORE_CREATE->value, new Message([
+        $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::BEFORE_CREATE->value, new Message([
             'resource' => $resourceName,
             'values' => $form->getValues(),
         ]));
-            
+
         $form->validate();
 
         if (empty($form->getErrors()) === false) {
-            $this->eventDispatcher->trigger(ResourceEvent::VALIDATION_ERROR->value, new Message([
+            $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::VALIDATION_ERROR->value, new Message([
                 'resource' => $resourceName,
                 'errors' => $form->getErrors(),
-            ]));    
-            
+            ]));
+
             return new JsonResponse([
                 'cause' => json_encode($form->getErrors(), JSON_UNESCAPED_UNICODE),
-                'type' => 'BadRequest'
+                'type' => 'BadRequest',
             ], 400);
         }
 
         try {
             $createdId = $this->resourceWriter->create($form->getValues());
-            
-            $this->logger->info("Ресурс {$resourceName} создан", ['id' => $createdId]);
-            
-            $this->eventDispatcher->trigger(ResourceEvent::AFTER_CREATE->value, new Message([
+
+            $this->logger->info("Ресурс {$resourceName} создан");
+
+            $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::AFTER_CREATE->value, new Message([
                 'resource' => $resourceName,
                 'id' => $createdId,
                 'values' => $form->getValues(),
             ]));
-            
+
             return new CreateResponse($createdId);
         } catch (\InvalidArgumentException $exception) {
-            $this->logger->error("Ошибка при создании ресурса {$resourceName}", [
-                'error' => $exception->getMessage(),
-            ]);
+
+            $this->logger->error("Ошибка при создании ресурса {$resourceName}");
+
             return new JsonResponse([
                 'cause' => json_encode($form->getErrors(), JSON_UNESCAPED_UNICODE),
-                'type' => 'BadRequest'
+                'type' => 'BadRequest',
             ], 400);
         }
     }
@@ -251,7 +251,7 @@ abstract class AbstractResourceController
 
         if ($existing === null) {
             $this->logger->warning("Ресурс {$resourceName} не найден");
-            $this->eventDispatcher->trigger(ResourceEvent::NOT_FOUND->value, new Message([
+            $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::NOT_FOUND->value, new Message([
                 'resource' => $resourceName,
                 'id' => $id,
                 'action' => 'update',
@@ -261,7 +261,7 @@ abstract class AbstractResourceController
 
         $form = $this->buildForm(ResourceActionTypesEnum::UPDATE->value);
 
-        $this->eventDispatcher->trigger(ResourceEvent::BEFORE_UPDATE->value, new Message([
+        $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::BEFORE_UPDATE->value, new Message([
             'resource' => $resourceName,
             'id' => $id,
             'values' => $form->getValues(),
@@ -270,15 +270,15 @@ abstract class AbstractResourceController
         $form->validate();
 
         if (empty($form->getErrors()) === false) {
-            $this->eventDispatcher->trigger(ResourceEvent::VALIDATION_ERROR->value, new Message([
+            $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::VALIDATION_ERROR->value, new Message([
                 'resource' => $resourceName,
                 'id' => $id,
                 'errors' => $form->getErrors(),
             ]));
-            
+
             return new JsonResponse([
                 'cause' => json_encode($form->getErrors(), JSON_UNESCAPED_UNICODE),
-                'type' => 'BadRequest'
+                'type' => 'BadRequest',
             ], 400);
         }
 
@@ -286,16 +286,16 @@ abstract class AbstractResourceController
             $rowsCount = $this->resourceWriter->update($id, $form->getValues());
         } catch (\InvalidArgumentException $exception) {
             $this->logger->error("Ошибка при обновлении ресурса {$resourceName}");
-            
+
             return new JsonResponse([
                 'cause' => json_encode($form->getErrors(), JSON_UNESCAPED_UNICODE),
-                'type' => 'BadRequest'
+                'type' => 'BadRequest',
             ], 400);
         }
 
         $this->logger->info("Ресурс {$resourceName} обновлен");
-        
-        $this->eventDispatcher->trigger(ResourceEvent::AFTER_UPDATE->value, new Message([
+//var_dump($this->getResourceName() . '.' . ResourceEvent::AFTER_UPDATE->value);
+        $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::AFTER_UPDATE->value, new Message([
             'resource' => $resourceName,
             'id' => $id,
             'values' => $form->getValues(),
@@ -307,7 +307,7 @@ abstract class AbstractResourceController
     public function actionPatch(string|int $id): PatchResponse
     {
         $this->checkCallAvailability(ResourceActionTypesEnum::PATCH);
-        
+
         $resourceName = $this->getResourceName();
         $this->logger->info("Частичное обновление ресурса {$resourceName} начато");
 
@@ -317,7 +317,7 @@ abstract class AbstractResourceController
 
         if ($existing === null) {
             $this->logger->warning("Ресурс {$resourceName} не найден");
-            $this->eventDispatcher->trigger(ResourceEvent::NOT_FOUND->value, new Message([
+            $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::NOT_FOUND->value, new Message([
                 'resource' => $resourceName,
                 'id' => $id,
                 'action' => 'update',
@@ -328,7 +328,7 @@ abstract class AbstractResourceController
         $form = $this->buildForm(ResourceActionTypesEnum::PATCH->value);
         $form->setSkipEmptyValues();
 
-        $this->eventDispatcher->trigger(ResourceEvent::BEFORE_PATCH->value, new Message([
+        $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::BEFORE_PATCH->value, new Message([
             'resource' => $resourceName,
             'id' => $id,
             'values' => $form->getValues(),
@@ -337,7 +337,7 @@ abstract class AbstractResourceController
         $form->validate();
 
         if (empty($form->getErrors()) === false) {
-            $this->eventDispatcher->trigger(ResourceEvent::VALIDATION_ERROR->value, new Message([
+            $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::VALIDATION_ERROR->value, new Message([
                 'resource' => $resourceName,
                 'id' => $id,
                 'errors' => $form->getErrors(),
@@ -356,8 +356,8 @@ abstract class AbstractResourceController
         }
 
         $this->logger->info("Ресурс {$resourceName} частично обновлен");
-        
-        $this->eventDispatcher->trigger(ResourceEvent::AFTER_PATCH->value, new Message([
+
+        $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::AFTER_PATCH->value, new Message([
             'resource' => $resourceName,
             'id' => $id,
             'values' => $form->getValues(),
@@ -369,16 +369,17 @@ abstract class AbstractResourceController
     public function actionDelete(string|int $id): DeleteResponse
     {
         $this->checkCallAvailability(ResourceActionTypesEnum::DELETE);
-        
+
         $resourceName = $this->getResourceName();
 
-        $this->eventDispatcher->trigger(ResourceEvent::BEFORE_DELETE->value, new Message([
+        $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::BEFORE_DELETE->value, new Message([
             'resource' => $resourceName,
             'id' => $id,
+            'actor' => $this->request->getAttribute('subject'),
         ]));
 
         $this->logger->info("Удаление ресурса {$resourceName} начато");
-        
+
         try {
             $rowsCount = $this->resourceWriter->delete($id);
         } catch (\InvalidArgumentException $exception) {
@@ -388,23 +389,23 @@ abstract class AbstractResourceController
 
         if ($rowsCount === 0) {
             $this->logger->warning("Ресурс {$resourceName} для удаления не найден");
-            
-            $this->eventDispatcher->trigger(ResourceEvent::NOT_FOUND->value, new Message([
+
+            $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::NOT_FOUND->value, new Message([
                 'resource' => $resourceName,
                 'id' => $id,
                 'action' => 'delete',
             ]));
-            
+
             throw new HttpNotFoundException();
         }
 
         $this->logger->info("Ресурс {$resourceName} удален");
-        
-        $this->eventDispatcher->trigger(ResourceEvent::AFTER_DELETE->value, new Message([
+
+        $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::AFTER_DELETE->value, new Message([
             'resource' => $resourceName,
             'id' => $id,
         ]));
-
+        $this->logger->warning($this->getResourceName() . '.' . ResourceEvent::AFTER_DELETE->value);
         return new DeleteResponse();
     }
 
