@@ -294,7 +294,7 @@ abstract class AbstractResourceController
         }
 
         $this->logger->info("Ресурс {$resourceName} обновлен");
-//var_dump($this->getResourceName() . '.' . ResourceEvent::AFTER_UPDATE->value);
+
         $this->eventDispatcher->trigger($this->getResourceName() . '.' . ResourceEvent::AFTER_UPDATE->value, new Message([
             'resource' => $resourceName,
             'id' => $id,
